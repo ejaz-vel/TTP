@@ -1,15 +1,24 @@
 package services;
 
+import java.io.IOException;
 import java.net.SocketException;
+
+import datatypes.Datagram;
 
 public class TTPService {
 	
 	private DatagramService datagramService;
-	private int windowSize;
 	
-	public TTPService(int windowSize, int port) throws SocketException {
+	public TTPService(int port) throws SocketException {
 		datagramService = new DatagramService(port, 10);
-		this.windowSize = windowSize;
+	}
+
+	public void sendData(Datagram datagram) throws IOException {
+		datagramService.sendDatagram(datagram);
+	}
+
+	public Datagram receiveData() throws ClassNotFoundException, IOException {
+		return datagramService.receiveDatagram();
 	}
 
 }

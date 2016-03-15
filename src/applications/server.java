@@ -8,11 +8,11 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import datatypes.Datagram;
-import services.DatagramService;
+import services.TTPService;
 
 public class server {
 
-	private static DatagramService ds;
+	private static TTPService ttp;
 
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 
@@ -22,7 +22,7 @@ public class server {
 
 		System.out.println("Starting Server ...");
 		int port = Integer.parseInt(args[0]);
-		ds = new DatagramService(port, 10);
+		ttp = new TTPService(port);
 		run();
 	}
 
@@ -31,7 +31,7 @@ public class server {
 		Datagram datagram;
 
 		while(true) {
-			datagram = ds.receiveDatagram();
+			datagram = ttp.receiveData();
 			System.out.println("Received datagram from " + datagram.getSrcaddr() + ":" + datagram.getSrcport() + " Data: " + datagram.getData());
 			Datagram fileData = new Datagram();
 			fileData.setSrcaddr(datagram.getDstaddr());
@@ -39,7 +39,7 @@ public class server {
 			fileData.setDstaddr(datagram.getSrcaddr());
 			fileData.setDstport(datagram.getSrcport());
 			fileData.setData(getFileContents(datagram.getData().toString()));
-			ds.sendDatagram(fileData);
+			ttp.sendData(fileData);
 		}
 	}
 

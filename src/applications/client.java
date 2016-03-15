@@ -8,11 +8,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import datatypes.Datagram;
-import services.DatagramService;
+import services.TTPService;
 
 public class client {
 
-	private static DatagramService ds;
+	private static TTPService ttp;
 
 	/**
 	 * @param args
@@ -27,7 +27,7 @@ public class client {
 		System.out.println("Starting client ...");
 
 		int port = Integer.parseInt(args[0]);
-		ds = new DatagramService(port, 10);
+		ttp = new TTPService(port);
 		String fileName = args[2];
 
 		Datagram datagram = new Datagram();
@@ -37,10 +37,10 @@ public class client {
 		datagram.setDstport((short)Integer.parseInt(args[1]));
 		datagram.setSrcport((short)port);
 
-		ds.sendDatagram(datagram);
+		ttp.sendData(datagram);
 		System.out.println("Sent Request for File");
 
-		datagram = ds.receiveDatagram();
+		datagram = ttp.receiveData();
 		if (datagram.getData() != null) {
 			System.out.println("Received File");
 
