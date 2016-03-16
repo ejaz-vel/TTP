@@ -13,12 +13,20 @@ public class TTPService {
 		datagramService = new DatagramService(port, 10);
 	}
 
+	public boolean setupConnection() {
+		return true;
+	}
+	
 	public void sendData(Datagram datagram) throws IOException {
 		datagramService.sendDatagram(datagram);
 	}
 
 	public Datagram receiveData() throws ClassNotFoundException, IOException {
 		return datagramService.receiveDatagram();
+	}
+	
+	public void closeConnection() {
+		// TODO
 	}
 
 }

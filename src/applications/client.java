@@ -25,32 +25,35 @@ public class client {
 		}
 
 		System.out.println("Starting client ...");
-
 		int port = Integer.parseInt(args[0]);
 		ttp = new TTPService(port);
-		String fileName = args[2];
 
-		Datagram datagram = new Datagram();
-		datagram.setData(args[2]);
-		datagram.setSrcaddr("127.0.0.1");
-		datagram.setDstaddr("127.0.0.1");
-		datagram.setDstport((short)Integer.parseInt(args[1]));
-		datagram.setSrcport((short)port);
+		if (ttp.setupConnection()) {
+			String fileName = args[2];
+			Datagram datagram = new Datagram();
+			datagram.setData(fileName);
+			datagram.setSrcaddr("127.0.0.1");
+			datagram.setDstaddr("127.0.0.1");
+			datagram.setDstport((short)Integer.parseInt(args[1]));
+			datagram.setSrcport((short)port);
+			ttp.sendData(datagram);
+			System.out.println("Sent Request for File");
 
-		ttp.sendData(datagram);
-		System.out.println("Sent Request for File");
+			datagram = ttp.receiveData();
+			if (datagram.getData() != null) {
+				System.out.println("Received File");
 
-		datagram = ttp.receiveData();
-		if (datagram.getData() != null) {
-			System.out.println("Received File");
-
-			//Store the data received in the localDisk
-			PrintWriter out = new PrintWriter("clientFiles/" + fileName);
-			out.print(datagram.getData());
-			out.close();
-			System.out.println("Done saving the file");
+				//Store the data received in the localDisk
+				PrintWriter out = new PrintWriter("clientFiles/" + fileName);
+				out.print(datagram.getData());
+				out.close();
+				System.out.println("Done saving the file");
+			} else {
+				System.out.println("No such file found on the server");
+			}
+			ttp.closeConnection();
 		} else {
-			System.out.println("No such file found on the server");
+			System.out.println("Unable to setup connection with the server");
 		}
 	}
 
