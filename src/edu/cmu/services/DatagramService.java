@@ -6,7 +6,7 @@
  *  replace this file with out own version. So DO NOT make any changes to the
  *  function prototypes
  */
-package services;
+package edu.cmu.services;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -18,7 +18,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
-import datatypes.Datagram;
+import edu.cmu.models.Datagram;
 
 public class DatagramService {
 

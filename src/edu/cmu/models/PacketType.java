@@ -1,7 +1,7 @@
 /**
  * 
  */
-package datatypes;
+package edu.cmu.models;
 
 /**
  * @author apurv

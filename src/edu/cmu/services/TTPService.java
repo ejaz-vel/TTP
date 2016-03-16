@@ -1,9 +1,9 @@
-package services;
+package edu.cmu.services;
 
 import java.io.IOException;
 import java.net.SocketException;
 
-import datatypes.Datagram;
+import edu.cmu.models.Datagram;
 
 public class TTPService {
 	

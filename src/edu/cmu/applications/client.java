@@ -2,13 +2,13 @@
  * A sample client that uses DatagramService
  */
 
-package applications;
+package edu.cmu.applications;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import datatypes.Datagram;
-import services.TTPService;
+import edu.cmu.models.Datagram;
+import edu.cmu.services.TTPService;
 
 public class client {
 

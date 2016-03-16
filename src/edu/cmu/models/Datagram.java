@@ -2,7 +2,7 @@
  * DO NOT MODIFY ANY CLASS MEMBERS !!!
  */
 
-package datatypes;
+package edu.cmu.models;
 
 import java.io.Serializable;
 

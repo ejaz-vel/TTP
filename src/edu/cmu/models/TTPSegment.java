@@ -1,7 +1,7 @@
 /**
  * 
  */
-package datatypes;
+package edu.cmu.models;
 
 import java.util.Arrays;
 

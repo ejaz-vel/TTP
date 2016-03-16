@@ -1,14 +1,14 @@
 /*
  * A sample server that uses DatagramService
  */
-package applications;
+package edu.cmu.applications;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-import datatypes.Datagram;
-import services.TTPService;
+import edu.cmu.models.Datagram;
+import edu.cmu.services.TTPService;
 
 public class server {
 
