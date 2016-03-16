@@ -3,7 +3,6 @@
  */
 package datatypes;
 
-import java.awt.TrayIcon.MessageType;
 import java.util.Arrays;
 
 /**
@@ -13,7 +12,7 @@ import java.util.Arrays;
 public class TTPSegment {
 
 	private Integer sequenceNumber;
-	private MessageType type;
+	private PacketType type;
 	private byte[] data = new byte[1450];
 	
 	public Integer getSequenceNumber() {
@@ -22,10 +21,10 @@ public class TTPSegment {
 	public void setSequenceNumber(Integer sequenceNumber) {
 		this.sequenceNumber = sequenceNumber;
 	}
-	public MessageType getType() {
+	public PacketType getType() {
 		return type;
 	}
-	public void setType(MessageType type) {
+	public void setType(PacketType type) {
 		this.type = type;
 	}
 	public byte[] getData() {
