@@ -14,10 +14,12 @@ import edu.cmu.models.TTPSegment;
 
 public class TTPService {
 
-	private DatagramService datagramService;
 	private static final int MAX_SEGMENT_SIZE = 1450;
 	private static final int WINDOW_SIZE = 4;
+	private static final int RETRANSMISSION_TIMEOUT = 5000;
 
+	private DatagramService datagramService;
+	private boolean synAckReceived;
 	private int expectingAcknowledgement = 0;
 	private int startingWindowSegment = 0;	
 
@@ -41,25 +43,56 @@ public class TTPService {
 			}
 		}
 	}
+	
+	class SYNAcknowledgementHandler implements Runnable {
+
+		@Override
+		public void run() {
+			while (!synAckReceived) {
+				try { 
+					Datagram dat = datagramService.receiveDatagram();
+					if (dat.getData() != null) {
+						TTPSegment segment = (TTPSegment) dat.getData();
+						if (segment.getType() == PacketType.SYN_ACK) {
+							synAckReceived = true;
+						}
+					}
+				} catch (IOException | ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 
 	public TTPService(int port) throws SocketException {
 		datagramService = new DatagramService(port, 10);
-		// TODO setup window size here
+		synAckReceived = false;
 	}
 
-	public boolean setupConnection() {
-		// TODO Send a SYN packet
-		// TODO Define a timeout for this SYN Packet
-		// TODO If no ACK packet arrives within the timeout period, retransmit the SYN packet
-		// TODO If we don't get an ACK after 3 consecutive retransmits, return false
-		// TODO Return true if we get an ACK from the receiver
-		// TODO Also send sequence number in the ACK and SYN packets, so that both sides know which sequence number to accept/send
-		return true;
+	public boolean setupConnection(String destIPAddress, String dstPort) throws IOException, InterruptedException {
+		TTPSegment ttpSegment = new TTPSegment();
+		ttpSegment.setType(PacketType.SYN);
+		
+		Datagram dt = new Datagram();
+		dt.setDstaddr(destIPAddress);
+		dt.setDstaddr(dstPort);
+		dt.setData(ttpSegment);
+		datagramService.sendDatagram(dt);
+		
+		Thread t = new Thread(new SYNAcknowledgementHandler());
+		t.start();
+		
+		long startTime = System.currentTimeMillis();
+		while(!synAckReceived 
+				&& (System.currentTimeMillis() - startTime) < RETRANSMISSION_TIMEOUT) {
+			Thread.sleep(200L);  // Poll every 200ms
+		}
+		t.interrupt();
+		return synAckReceived;
 	}
 
 	public void sendData(Datagram datagram) throws IOException, ClassNotFoundException, InterruptedException {
 		List<Datagram> data = getListOfSegments(datagram);
-		int retransmissionTimeout = 5000;
 
 		Thread t = new Thread(new AcknowledgementHandler());
 		t.start();
@@ -73,7 +106,7 @@ public class TTPService {
 			// While we have not received acknowledgement for all packets in the window OR
 			// the transmission timeout is over
 			while(expectingAcknowledgement < endOFWindow 
-					&& (System.currentTimeMillis() - startTime) < retransmissionTimeout) {
+					&& (System.currentTimeMillis() - startTime) < RETRANSMISSION_TIMEOUT) {
 				Thread.sleep(200L);  // Poll every 200ms
 			}
 			startingWindowSegment = expectingAcknowledgement;
@@ -125,7 +158,6 @@ public class TTPService {
 	}
 
 	public void closeConnection() {
-		// TODO
 	}
 
 }
