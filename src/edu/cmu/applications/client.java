@@ -38,19 +38,7 @@ public class client {
 			datagram.setSrcport((short)port);
 			ttp.sendData(datagram);
 			System.out.println("Sent Request for File");
-
-			datagram = ttp.receiveData();
-			if (datagram.getData() != null) {
-				System.out.println("Received File");
-
-				//Store the data received in the localDisk
-				PrintWriter out = new PrintWriter("clientFiles/" + fileName);
-				out.print(datagram.getData());
-				out.close();
-				System.out.println("Done saving the file");
-			} else {
-				System.out.println("No such file found on the server");
-			}
+			datagram = ttp.receiveData(fileName);
 			ttp.closeConnection();
 		} else {
 			System.out.println("Unable to setup connection with the server");

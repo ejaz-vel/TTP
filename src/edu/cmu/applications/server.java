@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import edu.cmu.models.Datagram;
+import edu.cmu.services.DatagramService;
 import edu.cmu.services.TTPService;
 
 public class server {
@@ -32,7 +33,7 @@ public class server {
 
 		while(true) {
 			datagram = ttp.receiveData();
-			System.out.println("Received datagram from " + datagram.getSrcaddr() + ":" + datagram.getSrcport() + " Data: " + datagram.getData());
+			System.out.println("Received datagram from " + datagram);
 			Datagram fileData = new Datagram();
 			fileData.setSrcaddr(datagram.getDstaddr());
 			fileData.setSrcport(datagram.getDstport());

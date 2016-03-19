@@ -145,6 +145,10 @@ public class Datagram implements Serializable {
 	public void setData(Object data) {
 		this.data = data;
 	}
-	
-	
+
+	@Override
+	public String toString() {
+		return "Datagram [srcaddr=" + srcaddr + ", dstaddr=" + dstaddr + ", srcport=" + srcport + ", dstport=" + dstport
+				+ ", size=" + size + ", checksum=" + checksum + ", data=" + data + "]";
+	}
 }

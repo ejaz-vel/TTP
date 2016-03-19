@@ -3,6 +3,7 @@ package edu.cmu.services;
 import java.io.IOException;
 import java.net.SocketException;
 
+import edu.cmu.helpers.ClientHelper;
 import edu.cmu.models.Datagram;
 
 public class TTPService {
@@ -21,6 +22,11 @@ public class TTPService {
 		datagramService.sendDatagram(datagram);
 	}
 
+	public Datagram receiveData(String filename) throws ClassNotFoundException, IOException {
+		ClientHelper.receiveDataHelper(filename);
+		return null;
+	}
+	
 	public Datagram receiveData() throws ClassNotFoundException, IOException {
 		return datagramService.receiveDatagram();
 	}
