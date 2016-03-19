@@ -25,7 +25,7 @@ public class TTPService {
 
 		@Override
 		public void run() {
-			while (true) {
+			while (!Thread.currentThread().isInterrupted()) {
 				try { 
 					Datagram dat = datagramService.receiveDatagram();
 					if (dat.getData() != null) {
@@ -36,13 +36,10 @@ public class TTPService {
 						}
 					}
 				} catch (IOException | ClassNotFoundException e) {
-					// Someone woke us up during sleep, that's OK
-					break;
+					e.printStackTrace();
 				}
 			}
-
 		}
-
 	}
 
 	public TTPService(int port) throws SocketException {
@@ -64,38 +61,24 @@ public class TTPService {
 		List<Datagram> data = getListOfSegments(datagram);
 		int retransmissionTimeout = 5000;
 
+		Thread t = new Thread(new AcknowledgementHandler());
+		t.start();
+		
 		// While we have not received acknowledgement for the entire data, continue sending
 		while(expectingAcknowledgement < data.size()) {
 			sendNSegments(startingWindowSegment, data);
-
 			long startTime = System.currentTimeMillis();
 			int endOFWindow = Math.min(data.size(), startingWindowSegment + WINDOW_SIZE);
 
 			// While we have not received acknowledgement for all packets in the window OR
 			// the transmission timeout is over
-			//			while(expectingAcknowledgement < endOFWindow 
-			//					&& (System.currentTimeMillis() - startTime) < retransmissionTimeout) {
-			//				Datagram dat = datagramService.receiveDatagram();
-			//				if (dat.getData() != null) {
-			//					TTPSegment segment = (TTPSegment) dat.getData();
-			//					if (segment.getType() == PacketType.ACK 
-			//							&& segment.getSequenceNumber() == expectingAcknowledgement) {
-			//						expectingAcknowledgement++;
-			//					}
-			//				}
-			//			}
-			//			startingWindowSegment = expectingAcknowledgement;
-
-			Thread t = new Thread(new AcknowledgementHandler());
-			t.start();
 			while(expectingAcknowledgement < endOFWindow 
 					&& (System.currentTimeMillis() - startTime) < retransmissionTimeout) {
 				Thread.sleep(200L);  // Poll every 200ms
 			}
-			t.interrupt();
-			t.join();
 			startingWindowSegment = expectingAcknowledgement;
 		}
+		t.interrupt();
 	}
 
 	private void sendNSegments(int startingWindowSegment, List<Datagram> data) throws IOException {
