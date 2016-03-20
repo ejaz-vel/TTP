@@ -18,24 +18,30 @@ public class client {
 	 * @param args
 	 * @throws IOException 
 	 * @throws ClassNotFoundException 
+	 * @throws InterruptedException 
+	 * @throws NumberFormatException 
 	 */
-	public static void main(String[] args) throws IOException, ClassNotFoundException {
+	public static void main(String[] args) throws IOException, ClassNotFoundException, NumberFormatException, InterruptedException {
 		if(args.length != 3) {
 			printUsage();
 		}
 
+		int clientPort = Integer.parseInt(args[0]);
+		int serverPort = Integer.parseInt(args[1]);
+		String clientAddress = "127.0.0.1";
+		String serverAddress = "127.0.0.1";
+		
 		System.out.println("Starting client ...");
-		int port = Integer.parseInt(args[0]);
-		ttp = new TTPService(port);
+		ttp = new TTPService(clientPort);
 
-		if (ttp.setupConnection()) {
+		if (ttp.setupConnection(clientAddress, clientPort, serverAddress, serverPort)) {
 			String fileName = args[2];
 			Datagram datagram = new Datagram();
 			datagram.setData(fileName);
-			datagram.setSrcaddr("127.0.0.1");
-			datagram.setDstaddr("127.0.0.1");
-			datagram.setDstport((short)Integer.parseInt(args[1]));
-			datagram.setSrcport((short)port);
+			datagram.setSrcaddr(clientAddress);
+			datagram.setDstaddr(serverAddress);
+			datagram.setDstport((short)serverPort);
+			datagram.setSrcport((short)clientPort);
 			ttp.sendData(datagram);
 			System.out.println("Sent Request for File");
 			datagram = ttp.receiveData(fileName);

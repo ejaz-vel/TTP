@@ -67,13 +67,16 @@ public class TTPService {
 		synAckReceived = false;
 	}
 
-	public boolean setupConnection(String destIPAddress, String dstPort) throws IOException, InterruptedException {
+	public boolean setupConnection(String srcIPAddress, int srcPort, String destIPAddress, int dstPort) 
+			throws IOException, InterruptedException {
 		TTPSegment ttpSegment = new TTPSegment();
 		ttpSegment.setType(PacketType.SYN);
 		
 		Datagram dt = new Datagram();
 		dt.setDstaddr(destIPAddress);
-		dt.setDstaddr(dstPort);
+		dt.setDstport((short) dstPort);
+		dt.setSrcaddr(srcIPAddress);
+		dt.setSrcport((short) srcPort);
 		dt.setData(ttpSegment);
 		datagramService.sendDatagram(dt);
 		
@@ -134,6 +137,7 @@ public class TTPService {
 		ObjectOutputStream o = new ObjectOutputStream(b);
 		o.writeObject(datagram.getData());
 		byte[] data = b.toByteArray();
+		
 		List<Datagram> datagramList = new ArrayList<>();
 		int numSegments = (int) Math.ceil((data.length + 0.0) / TTPConstants.MAX_SEGMENT_SIZE);
 
@@ -170,5 +174,4 @@ public class TTPService {
 
 	public void closeConnection() {
 	}
-
 }

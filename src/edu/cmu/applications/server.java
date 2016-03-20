@@ -15,7 +15,7 @@ public class server {
 
 	private static TTPService ttp;
 
-	public static void main(String[] args) throws IOException, ClassNotFoundException {
+	public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
 
 		if(args.length != 1) {
 			printUsage();
@@ -27,7 +27,7 @@ public class server {
 		run();
 	}
 
-	private static void run() throws IOException, ClassNotFoundException {
+	private static void run() throws IOException, ClassNotFoundException, InterruptedException {
 
 		Datagram datagram;
 
