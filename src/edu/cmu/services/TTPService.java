@@ -8,16 +8,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import edu.cmu.constants.TTPConstants;
 import edu.cmu.helpers.ClientHelper;
 import edu.cmu.models.Datagram;
 import edu.cmu.models.PacketType;
 import edu.cmu.models.TTPSegment;
 
 public class TTPService {
-
-	private static final int MAX_SEGMENT_SIZE = 1450;
-	private static final int WINDOW_SIZE = 4;
-	private static final int RETRANSMISSION_TIMEOUT = 5000;
 
 	private DatagramService datagramService;
 	private boolean synAckReceived;
@@ -85,7 +82,7 @@ public class TTPService {
 		
 		long startTime = System.currentTimeMillis();
 		while(!synAckReceived 
-				&& (System.currentTimeMillis() - startTime) < RETRANSMISSION_TIMEOUT) {
+				&& (System.currentTimeMillis() - startTime) < TTPConstants.RETRANSMISSION_TIMEOUT) {
 			Thread.sleep(200L);  // Poll every 200ms
 		}
 		t.interrupt();
@@ -102,12 +99,12 @@ public class TTPService {
 		while(expectingAcknowledgement < data.size()) {
 			sendNSegments(startingWindowSegment, data);
 			long startTime = System.currentTimeMillis();
-			int endOFWindow = Math.min(data.size(), startingWindowSegment + WINDOW_SIZE);
+			int endOFWindow = Math.min(data.size(), startingWindowSegment + TTPConstants.WINDOW_SIZE);
 
 			// While we have not received acknowledgement for all packets in the window OR
 			// the transmission timeout is over
 			while(expectingAcknowledgement < endOFWindow 
-					&& (System.currentTimeMillis() - startTime) < RETRANSMISSION_TIMEOUT) {
+					&& (System.currentTimeMillis() - startTime) < TTPConstants.RETRANSMISSION_TIMEOUT) {
 				Thread.sleep(200L);  // Poll every 200ms
 			}
 			startingWindowSegment = expectingAcknowledgement;
@@ -116,7 +113,7 @@ public class TTPService {
 	}
 
 	private void sendNSegments(int startingWindowSegment, List<Datagram> data) throws IOException {
-		for(int i = startingWindowSegment; i < startingWindowSegment + WINDOW_SIZE; i++) {
+		for(int i = startingWindowSegment; i < startingWindowSegment + TTPConstants.WINDOW_SIZE; i++) {
 			if (i >= data.size()) {
 				break;
 			}
@@ -124,17 +121,25 @@ public class TTPService {
 		}
 	}
 
+	/**
+	 * Creates a list of datagram segments by dividing the filesize into maximum 
+	 * filesize blocks.
+	 * 
+	 * @param datagram
+	 * @return
+	 * @throws IOException
+	 */
 	private List<Datagram> getListOfSegments(Datagram datagram) throws IOException {
 		ByteArrayOutputStream b = new ByteArrayOutputStream();
 		ObjectOutputStream o = new ObjectOutputStream(b);
 		o.writeObject(datagram.getData());
 		byte[] data = b.toByteArray();
 		List<Datagram> datagramList = new ArrayList<>();
-		int numSegments = (int) Math.ceil((data.length + 0.0) / MAX_SEGMENT_SIZE);
+		int numSegments = (int) Math.ceil((data.length + 0.0) / TTPConstants.MAX_SEGMENT_SIZE);
 
 		for (int i = 0; i < numSegments; i++) {
-			int start = i * MAX_SEGMENT_SIZE;
-			int end = Math.min(data.length, start + MAX_SEGMENT_SIZE);
+			int start = i * TTPConstants.MAX_SEGMENT_SIZE;
+			int end = Math.min(data.length, start + TTPConstants.MAX_SEGMENT_SIZE);
 			byte[] segmentData = Arrays.copyOfRange(data, start, end);
 
 			TTPSegment ttpSegment = new TTPSegment();
