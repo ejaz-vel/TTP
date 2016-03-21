@@ -39,6 +39,7 @@ public class ClientHelper {
 		datagram.setSrcport(connEssentials.getClientPort());
 		/* Send request for file */
 		ttpService.sendDatagram(datagram);
+		System.out.println("Sent request for File");
 		
 		/* Wait for acknowledgement. Acknowledgement will also contain number of
 		 * expected segments. Keep polling till timeout, otherwise, resend.
@@ -51,7 +52,9 @@ public class ClientHelper {
 		while(!requestFileHelper.isAckReceived()
 				&& (System.currentTimeMillis() - startTime) < TTPConstants.RETRANSMISSION_TIMEOUT) {
 			Thread.sleep(200L);  // Poll every 200ms
+			System.out.println("Still waiting for File ACK");
 		}
+		System.out.println("Stopped waiting for File ACK");
 		t.interrupt();
 		return requestFileHelper;
 	}

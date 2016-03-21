@@ -1,6 +1,7 @@
 package edu.cmu.TTP.services;
 
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.SocketException;
@@ -39,6 +40,7 @@ public class TTPService {
 		
 		// Send the SYN packet
 		TTPSegment ttpSegment = new TTPSegment();
+		ttpSegment.setData(null);
 		ttpSegment.setType(PacketType.SYN);
 		
 		Datagram dt = new Datagram();
@@ -48,6 +50,7 @@ public class TTPService {
 		dt.setSrcport(connEssentials.getClientPort());
 		dt.setData(ttpSegment); 
 		this.sendDatagram(dt);
+		System.out.println("Sent SYN Packet to server");
 		
 		TTPClientHelperModel clientHelperModel = new TTPClientHelperModel(this);
 		Thread t = new Thread(new AcknowledgementHandler(clientHelperModel,PacketType.ACK));
@@ -57,7 +60,9 @@ public class TTPService {
 		while(!clientHelperModel.isAckReceived()
 				&& (System.currentTimeMillis() - startTime) < TTPConstants.RETRANSMISSION_TIMEOUT) {
 			Thread.sleep(200L);  // Poll every 200ms
+			System.out.println("Still waiting for ACK");
 		}
+		System.out.println("Stopped waiting for ACK");
 		t.interrupt();
 		return clientHelperModel.isAckReceived();
 	}
@@ -135,7 +140,9 @@ public class TTPService {
 	}
 	
 	public Datagram receiveDatagram() throws ClassNotFoundException, IOException {
-		return datagramService.receiveDatagram();
+		Datagram receivedData = datagramService.receiveDatagram();
+		System.out.println(receivedData);
+		return receivedData;
 	}
 
 	public void sendDatagram(Datagram datagram) throws IOException{
@@ -153,6 +160,7 @@ public class TTPService {
 		ack.setDstport(datagram.getSrcport());
 		
 		TTPSegment segment = new TTPSegment();
+		segment.setData(null);
 		segment.setType(PacketType.ACK);
 		if(segment.getSequenceNumber() != null) {
 			segment.setSequenceNumber(sequenceNumber);
@@ -169,6 +177,7 @@ public class TTPService {
 		ack.setDstport(datagram.getSrcport());
 		
 		TTPSegment segment = new TTPSegment();
+		segment.setData(null);
 		segment.setType(PacketType.DATA_REQ_ACK);
 		ack.setData(segment);
 		this.sendDatagram(ack);

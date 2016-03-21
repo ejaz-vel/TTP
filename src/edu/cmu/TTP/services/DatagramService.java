@@ -10,6 +10,7 @@ package edu.cmu.TTP.services;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -57,7 +58,7 @@ public class DatagramService {
 		byte[] buf = new byte[1500];
 		DatagramPacket packet = new DatagramPacket(buf, buf.length);
 		socket.receive(packet);
-
+		
 		ByteArrayInputStream bStream = new ByteArrayInputStream(
 				packet.getData());
 		ObjectInputStream oStream = new ObjectInputStream(bStream);

@@ -3,13 +3,14 @@
  */
 package edu.cmu.TTP.models;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 /**
  * @author apurv
  *
  */
-public class TTPSegment {
+public class TTPSegment implements Serializable {
 
 	private Integer sequenceNumber;
 	private PacketType type;
