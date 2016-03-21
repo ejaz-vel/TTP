@@ -1,7 +1,7 @@
 /**
  * 
  */
-package edu.cmu.models;
+package edu.cmu.TTP.models;
 
 import java.util.Arrays;
 

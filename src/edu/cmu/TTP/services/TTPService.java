@@ -1,101 +1,77 @@
-package edu.cmu.services;
+package edu.cmu.TTP.services;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import edu.cmu.constants.TTPConstants;
-import edu.cmu.helpers.ClientHelper;
-import edu.cmu.models.Datagram;
-import edu.cmu.models.PacketType;
-import edu.cmu.models.TTPSegment;
+import edu.cmu.TTP.constants.TTPConstants;
+import edu.cmu.TTP.helpers.AcknowledgementHandler;
+import edu.cmu.TTP.helpers.DataAcknowledgementHandler;
+import edu.cmu.TTP.helpers.ServerHelper;
+import edu.cmu.TTP.models.ConnectionEssentials;
+import edu.cmu.TTP.models.Datagram;
+import edu.cmu.TTP.models.PacketType;
+import edu.cmu.TTP.models.TTPClientHelperModel;
+import edu.cmu.TTP.models.TTPSegment;
+import edu.cmu.TTP.models.TTPServerHelperModel;
 
 public class TTPService {
 
 	private DatagramService datagramService;
-	private boolean synAckReceived;
+//	private boolean ackReceived;
 	private int expectingAcknowledgement = 0;
 	private int startingWindowSegment = 0;	
-
-	class AcknowledgementHandler implements Runnable {
-
-		@Override
-		public void run() {
-			while (!Thread.currentThread().isInterrupted()) {
-				try { 
-					Datagram dat = datagramService.receiveDatagram();
-					if (dat.getData() != null) {
-						TTPSegment segment = (TTPSegment) dat.getData();
-						if (segment.getType() == PacketType.ACK 
-								&& segment.getSequenceNumber() == expectingAcknowledgement) {
-							expectingAcknowledgement++;
-						}
-					}
-				} catch (IOException | ClassNotFoundException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-	
-	class SYNAcknowledgementHandler implements Runnable {
-
-		@Override
-		public void run() {
-			while (!synAckReceived) {
-				try { 
-					Datagram dat = datagramService.receiveDatagram();
-					if (dat.getData() != null) {
-						TTPSegment segment = (TTPSegment) dat.getData();
-						if (segment.getType() == PacketType.SYN_ACK) {
-							synAckReceived = true;
-						}
-					}
-				} catch (IOException | ClassNotFoundException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
+	TTPClientHelperModel clientHelperModel = null;
+	private ServerHelper serverHelper = null;
 
 	public TTPService(int port) throws SocketException {
 		datagramService = new DatagramService(port, 10);
-		synAckReceived = false;
+		/* Initialise ackRecieved to false initially */
+		clientHelperModel = new TTPClientHelperModel(this);
+		serverHelper = new ServerHelper();
 	}
-
-	public boolean setupConnection(String srcIPAddress, int srcPort, String destIPAddress, int dstPort) 
+	
+	/** 
+	 * Send the SYN packet and wait for an ACk packet till time out.
+	 * TODO: Implement sending SYN packet again after timeout.
+	 * 
+	 * @param connEssentials
+	 * @return
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public boolean setupClientConnection(ConnectionEssentials connEssentials) 
 			throws IOException, InterruptedException {
 		TTPSegment ttpSegment = new TTPSegment();
 		ttpSegment.setType(PacketType.SYN);
 		
 		Datagram dt = new Datagram();
-		dt.setDstaddr(destIPAddress);
-		dt.setDstport((short) dstPort);
-		dt.setSrcaddr(srcIPAddress);
-		dt.setSrcport((short) srcPort);
+		dt.setDstaddr(connEssentials.getServerAddress());
+		dt.setDstport(connEssentials.getServerPort());
+		dt.setSrcaddr(connEssentials.getClientAddress());
+		dt.setSrcport(connEssentials.getClientPort());
 		dt.setData(ttpSegment);
+		/* Send the SYN packet */
 		datagramService.sendDatagram(dt);
-		
-		Thread t = new Thread(new SYNAcknowledgementHandler());
+		Thread t = new Thread(new AcknowledgementHandler(clientHelperModel,PacketType.ACK));
 		t.start();
 		
 		long startTime = System.currentTimeMillis();
-		while(!synAckReceived 
+		while(!clientHelperModel.isAckReceived()
 				&& (System.currentTimeMillis() - startTime) < TTPConstants.RETRANSMISSION_TIMEOUT) {
 			Thread.sleep(200L);  // Poll every 200ms
 		}
 		t.interrupt();
-		return synAckReceived;
+		return clientHelperModel.isAckReceived();
 	}
 
 	public void sendData(Datagram datagram) throws IOException, ClassNotFoundException, InterruptedException {
-		List<Datagram> data = getListOfSegments(datagram);
-
-		Thread t = new Thread(new AcknowledgementHandler());
+		byte fileBytes[] = serverHelper.getFileContents(((TTPSegment)datagram.getData()).getData().toString());
+		List<Datagram> data = getListOfSegments(datagram,fileBytes);
+		TTPServerHelperModel serverHelperModel = new TTPServerHelperModel(this);
+		Thread t = new Thread(new DataAcknowledgementHandler(serverHelperModel));
 		t.start();
 		
 		// While we have not received acknowledgement for the entire data, continue sending
@@ -132,19 +108,15 @@ public class TTPService {
 	 * @return
 	 * @throws IOException
 	 */
-	private List<Datagram> getListOfSegments(Datagram datagram) throws IOException {
-		ByteArrayOutputStream b = new ByteArrayOutputStream();
-		ObjectOutputStream o = new ObjectOutputStream(b);
-		o.writeObject(datagram.getData());
-		byte[] data = b.toByteArray();
+	private List<Datagram> getListOfSegments(Datagram datagram, byte fileBytes[]) throws IOException {
 		
 		List<Datagram> datagramList = new ArrayList<>();
-		int numSegments = (int) Math.ceil((data.length + 0.0) / TTPConstants.MAX_SEGMENT_SIZE);
+		int numSegments = (int) Math.ceil((fileBytes.length + 0.0) / TTPConstants.MAX_SEGMENT_SIZE);
 
 		for (int i = 0; i < numSegments; i++) {
 			int start = i * TTPConstants.MAX_SEGMENT_SIZE;
-			int end = Math.min(data.length, start + TTPConstants.MAX_SEGMENT_SIZE);
-			byte[] segmentData = Arrays.copyOfRange(data, start, end);
+			int end = Math.min(fileBytes.length, start + TTPConstants.MAX_SEGMENT_SIZE);
+			byte[] segmentData = Arrays.copyOfRange(fileBytes, start, end);
 
 			TTPSegment ttpSegment = new TTPSegment();
 			ttpSegment.setData(segmentData);
@@ -162,16 +134,31 @@ public class TTPService {
 		}
 		return datagramList;
 	}
-
-	public Datagram receiveData(String filename) throws ClassNotFoundException, IOException {
-		ClientHelper.receiveDataHelper(filename);
-		return null;
-	}
 	
-	public Datagram receiveData() throws ClassNotFoundException, IOException {
+	public Datagram receiveDatagram() throws ClassNotFoundException, IOException {
 		return datagramService.receiveDatagram();
 	}
 
+	public void sendDatagram(Datagram datagram) throws IOException{
+		datagramService.sendDatagram(datagram);
+	}
+	
 	public void closeConnection() {
+	}
+
+	public void sendAck(Datagram datagram, Integer sequenceNumber) throws IOException {
+		Datagram ack = new Datagram();
+		ack.setSrcaddr(datagram.getDstaddr());
+		ack.setSrcport(datagram.getDstport());
+		ack.setDstaddr(datagram.getSrcaddr());
+		ack.setDstport(datagram.getSrcport());
+		
+		TTPSegment segment = new TTPSegment();
+		segment.setType(PacketType.ACK);
+		if(segment.getSequenceNumber()!=null) {
+			segment.setSequenceNumber(sequenceNumber);
+		}
+		ack.setData(segment);
+		this.sendDatagram(ack);
 	}
 }

@@ -2,7 +2,7 @@
  * DO NOT MODIFY ANY CLASS MEMBERS !!!
  */
 
-package edu.cmu.models;
+package edu.cmu.TTP.models;
 
 import java.io.Serializable;
 
