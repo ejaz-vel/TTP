@@ -37,12 +37,12 @@ public class ClientHelper {
 		datagram.setDstaddr(connEssentials.getServerAddress());
 		datagram.setDstport(connEssentials.getServerPort());
 		datagram.setSrcport(connEssentials.getClientPort());
-		/* Send request for file */
+		// Send request for file.
 		ttpService.sendDatagram(datagram);
 		System.out.println("Sent request for File");
 		
 		/* Wait for acknowledgement. Acknowledgement will also contain number of
-		 * expected segments. Keep polling till timeout, otherwise, resend.
+		 * expected segments. Keep polling till timeout, otherwise, re-send.
 		 */
 		TTPClientHelperModel requestFileHelper = new TTPClientHelperModel(ttpService);
 		Thread t = new Thread(new AcknowledgementHandler(requestFileHelper, PacketType.DATA_REQ_ACK));
@@ -63,8 +63,10 @@ public class ClientHelper {
 														throws ClassNotFoundException, IOException {
 		int numberOfSegmentsRecieved = 0;
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		while(numberOfSegmentsRecieved <= clientHelperModel.getNumberOfSegmentsToBeRecieved()) {
+		System.out.println("Number of Segments to be Received: " + clientHelperModel.getNumberOfSegmentsToBeRecieved());
+		while(numberOfSegmentsRecieved < clientHelperModel.getNumberOfSegmentsToBeRecieved()) {
 			Datagram datagram = ttpService.receiveDatagram();
+			System.out.println("Data Segment Received: " + datagram);
 			if (datagram.getData() != null) {
 				TTPSegment segment = (TTPSegment) datagram.getData();
 				if(clientHelperModel.getExpectedSequenceNumber() == segment.getSequenceNumber() 
@@ -73,6 +75,7 @@ public class ClientHelper {
 					
 					/* Send acknowledgment */
 					ttpService.sendAck(datagram,clientHelperModel.getExpectedSequenceNumber());
+					System.out.println("Sent ACK for Sequence: " + clientHelperModel.getExpectedSequenceNumber());
 					clientHelperModel.increamentExpectedSequenceNumber();
 					numberOfSegmentsRecieved++;
 				}
@@ -82,7 +85,7 @@ public class ClientHelper {
 		
 		//Store the data received in the localDisk
 		PrintWriter out = new PrintWriter("clientFiles/" + filename);
-		out.print(outputStream.toByteArray());
+		out.print(new String(outputStream.toByteArray()));
 		out.close();
 		System.out.println("Done saving the file");
 	}

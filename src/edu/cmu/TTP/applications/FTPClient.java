@@ -38,12 +38,12 @@ public class FTPClient {
 		ClientHelper helper = new ClientHelper(connectionEssentials, ttp);
 		TTPClientHelperModel clientHelperModel = null;
 		
-		/* Setup the connection. */
+		// Setup the connection.
 		if (ttp.setupClientConnection(connectionEssentials)) {
-			/* SYN and ACK are done. Now request for the filename */
+			
+			// SYN and ACK are done. Now request for the filename.
 			if((clientHelperModel= helper.requestForFile(fileName))!=null) {
-				System.out.println("Sent Request for File");
-				/* Start reading data */
+				// Start reading data.
 				helper.receiveDataHelper(clientHelperModel,fileName);
 			}
 			ttp.closeConnection();

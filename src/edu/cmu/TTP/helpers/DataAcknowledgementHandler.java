@@ -29,6 +29,7 @@ public class DataAcknowledgementHandler implements Runnable {
 				Datagram dat = serverHelperModel.getTTPService().receiveDatagram();
 				if (dat.getData() != null) {
 					TTPSegment segment = (TTPSegment) dat.getData();
+					System.out.println("Data Ack Recieved: " + segment);
 					if (segment.getType() == PacketType.ACK 
 							&& segment.getSequenceNumber() == serverHelperModel.getExpectingAcknowledgement()) {
 						serverHelperModel.setExpectingAcknowledgement

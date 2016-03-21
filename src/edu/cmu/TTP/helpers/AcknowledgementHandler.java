@@ -36,7 +36,7 @@ public class AcknowledgementHandler implements Runnable {
 						clientHelperModel.setAckReceived(true);
 						if(segment.getType().equals(PacketType.DATA_REQ_ACK))
 							clientHelperModel.setNumberOfSegmentsToBeRecieved
-												(Integer.parseInt(segment.getData().toString()));
+												(Integer.parseInt(new String(segment.getData())));
 					}
 				}
 			} catch (IOException | ClassNotFoundException e) {

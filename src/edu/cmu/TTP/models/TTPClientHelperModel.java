@@ -13,8 +13,8 @@ public class TTPClientHelperModel {
 	
 	private TTPService ttpService;
 	private boolean ackReceived = false;
-	private int numberOfSegmentsToBeRecieved = 0;
-	private int expectedSequenceNumber = 0;
+	private Integer numberOfSegmentsToBeRecieved = 0;
+	private Integer expectedSequenceNumber = 0;
 	
 	public TTPClientHelperModel(TTPService ttpService) {
 		this.ttpService = ttpService;
@@ -31,11 +31,11 @@ public class TTPClientHelperModel {
 		this.ackReceived = ackReceived;
 	}
 	
-	public int getNumberOfSegmentsToBeRecieved() {
+	public Integer getNumberOfSegmentsToBeRecieved() {
 		return numberOfSegmentsToBeRecieved;
 	}
 	
-	public void setNumberOfSegmentsToBeRecieved(int numberOfSegmentsToBeRecieved) {
+	public void setNumberOfSegmentsToBeRecieved(Integer numberOfSegmentsToBeRecieved) {
 		this.numberOfSegmentsToBeRecieved = numberOfSegmentsToBeRecieved;
 	}
 	

@@ -1,7 +1,6 @@
 package edu.cmu.TTP.services;
 
 import java.io.ByteArrayOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.SocketException;
@@ -97,6 +96,7 @@ public class TTPService {
 			if (i >= data.size()) {
 				break;
 			}
+			System.out.println("Sending Packet: " + data.get(i));
 			datagramService.sendDatagram(data.get(i));
 		}
 	}
@@ -141,7 +141,6 @@ public class TTPService {
 	
 	public Datagram receiveDatagram() throws ClassNotFoundException, IOException {
 		Datagram receivedData = datagramService.receiveDatagram();
-		System.out.println(receivedData);
 		return receivedData;
 	}
 
@@ -162,7 +161,7 @@ public class TTPService {
 		TTPSegment segment = new TTPSegment();
 		segment.setData(null);
 		segment.setType(PacketType.ACK);
-		if(segment.getSequenceNumber() != null) {
+		if(sequenceNumber != null) {
 			segment.setSequenceNumber(sequenceNumber);
 		}
 		ack.setData(segment);
@@ -171,13 +170,13 @@ public class TTPService {
 	
 	private void sendDataReqAck(Datagram datagram, int size) throws IOException {
 		Datagram ack = new Datagram();
-		ack.setSrcaddr(datagram.getDstaddr());
-		ack.setSrcport(datagram.getDstport());
-		ack.setDstaddr(datagram.getSrcaddr());
-		ack.setDstport(datagram.getSrcport());
+		ack.setSrcaddr(datagram.getSrcaddr());
+		ack.setSrcport(datagram.getSrcport());
+		ack.setDstaddr(datagram.getDstaddr());
+		ack.setDstport(datagram.getDstport());
 		
 		TTPSegment segment = new TTPSegment();
-		segment.setData(null);
+		segment.setData(String.valueOf(size).getBytes());
 		segment.setType(PacketType.DATA_REQ_ACK);
 		ack.setData(segment);
 		this.sendDatagram(ack);
