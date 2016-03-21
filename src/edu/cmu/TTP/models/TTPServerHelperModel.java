@@ -5,8 +5,9 @@ import edu.cmu.TTP.services.TTPService;
 public class TTPServerHelperModel {
 
 	private TTPService ttpService;
-	/* Expecting acknowledgment will start with one more than the sending seq number */
-	private int expectingAcknowledgement = 1;
+	
+	private int expectingAcknowledgement = 0;
+	private int startingWindowSegment = 0;
 	
 	public TTPServerHelperModel(TTPService ttpService) {
 		this.ttpService = ttpService;
@@ -21,6 +22,14 @@ public class TTPServerHelperModel {
 	}
 	public void setExpectingAcknowledgement(int expectingAcknowledgement) {
 		this.expectingAcknowledgement = expectingAcknowledgement;
+	}
+
+	public int getStartingWindowSegment() {
+		return startingWindowSegment;
+	}
+
+	public void setStartingWindowSegment(int startingWindowSegment) {
+		this.startingWindowSegment = startingWindowSegment;
 	}
 
 	@Override

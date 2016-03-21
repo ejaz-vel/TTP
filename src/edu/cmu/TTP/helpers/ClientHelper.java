@@ -25,8 +25,8 @@ public class ClientHelper {
 	private ConnectionEssentials connEssentials;
 	private TTPService ttpService;
 	
-	public ClientHelper(ConnectionEssentials connEssentials) throws SocketException {
-		ttpService = new TTPService(connEssentials.getClientPort());
+	public ClientHelper(ConnectionEssentials connEssentials, TTPService ttp) throws SocketException {
+		this.ttpService = ttp;
 		this.connEssentials = connEssentials;
 	}
 	
@@ -39,6 +39,7 @@ public class ClientHelper {
 		datagram.setSrcport(connEssentials.getClientPort());
 		/* Send request for file */
 		ttpService.sendDatagram(datagram);
+		
 		/* Wait for acknowledgement. Acknowledgement will also contain number of
 		 * expected segments. Keep polling till timeout, otherwise, resend.
 		 */
@@ -57,20 +58,21 @@ public class ClientHelper {
 	
 	public void receiveDataHelper(TTPClientHelperModel clientHelperModel, String filename) 
 														throws ClassNotFoundException, IOException {
-		int numberOfPacketsRecieved = 0;
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
-		while(numberOfPacketsRecieved<=clientHelperModel.getNumberOfSegmentsToBeRecieved()) {
+		int numberOfSegmentsRecieved = 0;
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		while(numberOfSegmentsRecieved <= clientHelperModel.getNumberOfSegmentsToBeRecieved()) {
 			Datagram datagram = ttpService.receiveDatagram();
 			if (datagram.getData() != null) {
 				TTPSegment segment = (TTPSegment) datagram.getData();
-				if(clientHelperModel.getExpectedSequenceNumber()== segment.getSequenceNumber() 
+				if(clientHelperModel.getExpectedSequenceNumber() == segment.getSequenceNumber() 
 						&& segment.getType().equals(PacketType.DATA)) {
 					outputStream.write(segment.getData());
+					
+					/* Send acknowledgment */
+					ttpService.sendAck(datagram,clientHelperModel.getExpectedSequenceNumber());
 					clientHelperModel.increamentExpectedSequenceNumber();
-					numberOfPacketsRecieved++;
+					numberOfSegmentsRecieved++;
 				}
-				/* Send acknowledgment */
-				ttpService.sendAck(datagram,clientHelperModel.getExpectedSequenceNumber());
 			}
 		}
 		System.out.println("Received File");

@@ -25,8 +25,8 @@ public class FTPClient {
 			printUsage();
 		}
 
-		int clientPort = Integer.parseInt(args[1]);
-		int serverPort = Integer.parseInt(args[0]);
+		int clientPort = Integer.parseInt(args[0]);
+		int serverPort = Integer.parseInt(args[1]);
 		String fileName = args[2];
 		String clientAddress = "127.0.0.1";
 		String serverAddress = "127.0.0.1";
@@ -35,8 +35,9 @@ public class FTPClient {
 		TTPService ttp = new TTPService(clientPort);
 		ConnectionEssentials connectionEssentials = 
 					new ConnectionEssentials(clientAddress, serverAddress, clientPort, serverPort);
-		ClientHelper helper = new ClientHelper(connectionEssentials);
+		ClientHelper helper = new ClientHelper(connectionEssentials, ttp);
 		TTPClientHelperModel clientHelperModel = null;
+		
 		/* Setup the connection. */
 		if (ttp.setupClientConnection(connectionEssentials)) {
 			/* SYN and ACK are done. Now request for the filename */

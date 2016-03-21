@@ -4,6 +4,8 @@
 package edu.cmu.TTP.applications;
 
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 
 import edu.cmu.TTP.models.Datagram;
@@ -30,21 +32,45 @@ public class FTPServer {
 	private static void run() throws IOException, ClassNotFoundException, InterruptedException {
 		Datagram datagram;
 		while(true) {
+			
 			// Wait for a Syn.
 			datagram = ttp.receiveDatagram();
 			if(((TTPSegment)datagram.getData()).getType().equals(PacketType.SYN)) {
-				System.out.println("Received datagram from " + datagram);
+				System.out.println("Received SYN datagram from " + datagram);
 				ttp.sendAck(datagram, null);
-				/* Wait for DATA_REQ_SYN packet to get the filename that client is requesting */
+				
 				datagram = ttp.receiveDatagram();
-				if(((TTPSegment)datagram.getData()).getType().equals(PacketType.DATA_REQ_SYN)) {
-					ttp.sendData(datagram);
-				}				
-//				fileData.setData(getFileContents(((TTPSegment)datagram.getData()).getData().toString()));
+				System.out.println("Received Data datagram from " + datagram);
+				
+				Datagram fileData = new Datagram();
+				fileData.setSrcaddr(datagram.getDstaddr());
+				fileData.setSrcport(datagram.getDstport());
+				fileData.setDstaddr(datagram.getSrcaddr());
+				fileData.setDstport(datagram.getSrcport());
+				fileData.setData(getFileContents(datagram.getData().toString()));
+				ttp.sendData(fileData);
 			}
 		}
 	}
 
+	private static Object getFileContents(String fileName) {
+		try {
+			BufferedReader br = new BufferedReader(new FileReader("serverFiles/" +  fileName));
+			StringBuilder sb = new StringBuilder();
+			String line = br.readLine();
+			while (line != null) {
+				sb.append(line);
+				sb.append(System.lineSeparator());
+				line = br.readLine();
+			}
+			br.close();
+			return sb.toString();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	private static void printUsage() {
 		System.out.println("Usage: server <port>");
 		System.exit(-1);
