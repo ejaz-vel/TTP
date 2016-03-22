@@ -56,6 +56,7 @@ public class ClientHelper {
 		}
 		System.out.println("Stopped waiting for File ACK");
 		t.interrupt();
+		//t.stop();
 		return requestFileHelper;
 	}
 	

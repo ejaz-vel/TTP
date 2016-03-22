@@ -34,6 +34,7 @@ public class FTPServer {
 		while(true) {
 			
 			// Wait for a Syn.
+			System.out.println("Waiting for a SYN packet");
 			datagram = ttp.receiveDatagram();
 			if(((TTPSegment)datagram.getData()).getType().equals(PacketType.SYN)) {
 				System.out.println("Received SYN datagram from " + datagram);

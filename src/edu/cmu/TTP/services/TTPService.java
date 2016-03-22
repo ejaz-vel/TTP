@@ -27,9 +27,9 @@ public class TTPService {
 	public TTPService(int port) throws SocketException {
 		datagramService = new DatagramService(port, 10);
 	}
-	
+
 	/** 
-	 * Send the SYN packet and wait for an ACk packet till time out.
+	 * Send the SYN packet and wait for an ACK packet till time out.
 	 * 
 	 * @param connEssentials
 	 * @return
@@ -38,44 +38,50 @@ public class TTPService {
 	 */
 	public boolean setupClientConnection(ConnectionEssentials connEssentials) 
 			throws IOException, InterruptedException {
-		
+
 		// Send the SYN packet
-		TTPSegment ttpSegment = new TTPSegment();
-		ttpSegment.setData(null);
-		ttpSegment.setType(PacketType.SYN);
-		
-		Datagram dt = new Datagram();
-		dt.setDstaddr(connEssentials.getServerAddress());
-		dt.setDstport(connEssentials.getServerPort());
-		dt.setSrcaddr(connEssentials.getClientAddress());
-		dt.setSrcport(connEssentials.getClientPort());
-		dt.setData(ttpSegment); 
-		this.sendDatagram(dt);
-		System.out.println("Sent SYN Packet to server");
-		
 		TTPClientHelperModel clientHelperModel = new TTPClientHelperModel(this);
-		Thread t = new Thread(new AcknowledgementHandler(clientHelperModel,PacketType.ACK));
-		t.start();
-		
-		long startTime = System.currentTimeMillis();
-		while(!clientHelperModel.isAckReceived()
-				&& (System.currentTimeMillis() - startTime) < TTPConstants.RETRANSMISSION_TIMEOUT) {
-			Thread.sleep(200L);  // Poll every 200ms
-			System.out.println("Still waiting for ACK");
+		int transmissionAttempts = 0;
+		while(!clientHelperModel.isAckReceived() && transmissionAttempts < TTPConstants.MAX_RETRY) {
+			transmissionAttempts++;
+			System.out.println("SYN Transmission attempt " + transmissionAttempts);
+			TTPSegment ttpSegment = new TTPSegment();
+			ttpSegment.setData(null);
+			ttpSegment.setType(PacketType.SYN);
+
+			Datagram dt = new Datagram();
+			dt.setDstaddr(connEssentials.getServerAddress());
+			dt.setDstport(connEssentials.getServerPort());
+			dt.setSrcaddr(connEssentials.getClientAddress());
+			dt.setSrcport(connEssentials.getClientPort());
+			dt.setData(ttpSegment); 
+			this.sendDatagram(dt);
+			System.out.println("Sent SYN Packet to server");
+
+			Thread t = new Thread(new AcknowledgementHandler(clientHelperModel,PacketType.ACK));
+			t.start();
+
+			long startTime = System.currentTimeMillis();
+			while(!clientHelperModel.isAckReceived()
+					&& (System.currentTimeMillis() - startTime) < TTPConstants.RETRANSMISSION_TIMEOUT) {
+				Thread.sleep(200L);  // Poll every 200ms
+				System.out.println("Still waiting for ACK");
+			}
+			System.out.println("Stopped waiting for ACK");
+			t.interrupt();
 		}
-		System.out.println("Stopped waiting for ACK");
-		t.interrupt();
+
 		return clientHelperModel.isAckReceived();
 	}
 
 	public void sendData(Datagram datagram) throws IOException, ClassNotFoundException, InterruptedException {
 		List<Datagram> data = getListOfSegments(datagram);
 		this.sendDataReqAck(datagram, data.size());
-		
+
 		TTPServerHelperModel serverHelperModel = new TTPServerHelperModel(this);
 		Thread t = new Thread(new DataAcknowledgementHandler(serverHelperModel));
 		t.start();
-		
+
 		// While we have not received acknowledgement for the entire data, continue sending
 		while(serverHelperModel.getExpectingAcknowledgement() < data.size()) {
 			sendNSegments(serverHelperModel.getStartingWindowSegment(), data);
@@ -116,7 +122,7 @@ public class TTPService {
 		ObjectOutputStream o = new ObjectOutputStream(b);
 		o.writeObject(datagram.getData());
 		byte[] data = b.toByteArray();
-		
+
 		List<Datagram> datagramList = new ArrayList<>();
 		int numSegments = (int) Math.ceil((data.length + 0.0) / TTPConstants.MAX_SEGMENT_SIZE);
 		for (int i = 0; i < numSegments; i++) {
@@ -141,7 +147,7 @@ public class TTPService {
 		}
 		return datagramList;
 	}
-	
+
 	public Datagram receiveDatagram() throws ClassNotFoundException, IOException {
 		Datagram receivedData = datagramService.receiveDatagram();
 		return receivedData;
@@ -151,14 +157,14 @@ public class TTPService {
 		datagram.setChecksum(calculateChecksum(datagram));
 		datagramService.sendDatagram(datagram);
 	}
-	
+
 	public void closeConnection() {
 	}
 
 	public long calculateChecksum(Datagram datagram) throws IOException {
 		long prevChecksum = datagram.getChecksum();
 		datagram.setChecksum(0);
-		
+
 		ByteArrayOutputStream b = new ByteArrayOutputStream();
 		ObjectOutputStream o = new ObjectOutputStream(b);
 		o.writeObject(datagram.getData());
@@ -166,18 +172,18 @@ public class TTPService {
 		Checksum ch = new CRC32();
 		ch.update(data, 0, data.length);
 		long calcChecksum = ch.getValue();
-		
+
 		datagram.setChecksum(prevChecksum);
 		return calcChecksum;
 	}
-	
+
 	public void sendAck(Datagram datagram, Integer sequenceNumber) throws IOException {
 		Datagram ack = new Datagram();
 		ack.setSrcaddr(datagram.getDstaddr());
 		ack.setSrcport(datagram.getDstport());
 		ack.setDstaddr(datagram.getSrcaddr());
 		ack.setDstport(datagram.getSrcport());
-		
+
 		TTPSegment segment = new TTPSegment();
 		segment.setData(null);
 		segment.setType(PacketType.ACK);
@@ -187,14 +193,14 @@ public class TTPService {
 		ack.setData(segment);
 		this.sendDatagram(ack);
 	}
-	
+
 	private void sendDataReqAck(Datagram datagram, int size) throws IOException {
 		Datagram ack = new Datagram();
 		ack.setSrcaddr(datagram.getSrcaddr());
 		ack.setSrcport(datagram.getSrcport());
 		ack.setDstaddr(datagram.getDstaddr());
 		ack.setDstport(datagram.getDstport());
-		
+
 		TTPSegment segment = new TTPSegment();
 		segment.setData(String.valueOf(size).getBytes());
 		segment.setType(PacketType.DATA_REQ_ACK);
