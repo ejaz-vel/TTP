@@ -7,6 +7,8 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 
 import edu.cmu.TTP.constants.TTPConstants;
 import edu.cmu.TTP.helpers.AcknowledgementHandler;
@@ -91,7 +93,7 @@ public class TTPService {
 		t.interrupt();
 	}
 
-	private void sendNSegments(int startingWindowSegment, List<Datagram> data) throws IOException {
+	private void sendNSegments(int startingWindowSegment, List<Datagram> data) throws IOException, ClassNotFoundException, InterruptedException {
 		for(int i = startingWindowSegment; i < startingWindowSegment + TTPConstants.WINDOW_SIZE; i++) {
 			if (i >= data.size()) {
 				break;
@@ -133,6 +135,7 @@ public class TTPService {
 			dt.setSrcport(datagram.getSrcport());
 			dt.setDstport(datagram.getDstport());
 			dt.setData(ttpSegment);
+			dt.setChecksum(calculateChecksum(dt));
 
 			datagramList.add(dt);
 		}
@@ -145,12 +148,29 @@ public class TTPService {
 	}
 
 	public void sendDatagram(Datagram datagram) throws IOException{
+		datagram.setChecksum(calculateChecksum(datagram));
 		datagramService.sendDatagram(datagram);
 	}
 	
 	public void closeConnection() {
 	}
 
+	public long calculateChecksum(Datagram datagram) throws IOException {
+		long prevChecksum = datagram.getChecksum();
+		datagram.setChecksum(0);
+		
+		ByteArrayOutputStream b = new ByteArrayOutputStream();
+		ObjectOutputStream o = new ObjectOutputStream(b);
+		o.writeObject(datagram.getData());
+		byte[] data = b.toByteArray();
+		Checksum ch = new CRC32();
+		ch.update(data, 0, data.length);
+		long calcChecksum = ch.getValue();
+		
+		datagram.setChecksum(prevChecksum);
+		return calcChecksum;
+	}
+	
 	public void sendAck(Datagram datagram, Integer sequenceNumber) throws IOException {
 		Datagram ack = new Datagram();
 		ack.setSrcaddr(datagram.getDstaddr());

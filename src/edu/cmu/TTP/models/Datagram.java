@@ -26,7 +26,7 @@ public class Datagram implements Serializable {
 	short size;
 	
 	// Datagram checksum
-	short checksum;
+	long checksum;
 	
 	// Actual data
 	Object data;
@@ -121,14 +121,14 @@ public class Datagram implements Serializable {
 	/**
 	 * @return the checksum
 	 */
-	public short getChecksum() {
+	public long getChecksum() {
 		return checksum;
 	}
 
 	/**
 	 * @param checksum the checksum to set
 	 */
-	public void setChecksum(short checksum) {
+	public void setChecksum(long checksum) {
 		this.checksum = checksum;
 	}
 

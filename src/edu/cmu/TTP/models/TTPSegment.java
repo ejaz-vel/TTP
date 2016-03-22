@@ -6,6 +6,8 @@ package edu.cmu.TTP.models;
 import java.io.Serializable;
 import java.util.Arrays;
 
+import edu.cmu.TTP.constants.TTPConstants;
+
 /**
  * @author apurv
  *
@@ -14,7 +16,7 @@ public class TTPSegment implements Serializable {
 
 	private Integer sequenceNumber;
 	private PacketType type;
-	private byte[] data = new byte[1450];
+	private byte[] data = new byte[TTPConstants.MAX_SEGMENT_SIZE];
 	
 	public Integer getSequenceNumber() {
 		return sequenceNumber;
