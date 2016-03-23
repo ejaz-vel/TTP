@@ -28,6 +28,7 @@ public class FTPConnectionHandler implements Runnable {
 		try {
 			ClientDataID clientData = new ClientDataID();
 			clientData.setIPAddress(synDatagram.getSrcaddr());
+			clientData.setPort(synDatagram.getSrcport());
 			clientData.setPacketType(PacketType.DATA_REQ_SYN);
 			clientData.setSequenceNumber(null);
 			

@@ -80,7 +80,7 @@ public class TTPService {
 		this.sendDataReqAck(datagram, data.size());
 
 		TTPServerHelperModel serverHelperModel = new TTPServerHelperModel(this);
-		Thread t = new Thread(new DataAcknowledgementHandler(serverHelperModel, datagram.getDstaddr(), map));
+		Thread t = new Thread(new DataAcknowledgementHandler(serverHelperModel, datagram.getDstaddr(), datagram.getDstport(), map));
 		t.start();
 
 		// While we have not received acknowledgement for the entire data,

@@ -47,6 +47,7 @@ public class FTPServer {
 					System.out.println("Received File name at Server Side");
 					ClientDataID clientID = new ClientDataID();
 					clientID.setIPAddress(datagram.getSrcaddr());
+					clientID.setPort(datagram.getSrcport());
 					clientID.setSequenceNumber(null);
 					clientID.setPacketType(PacketType.DATA_REQ_SYN);
 					map.putIfAbsent(clientID, datagram);
@@ -54,6 +55,7 @@ public class FTPServer {
 					System.out.println("Received ACK for data at Server Side");
 					ClientDataID clientID = new ClientDataID();
 					clientID.setIPAddress(datagram.getSrcaddr());
+					clientID.setPort(datagram.getSrcport());
 					clientID.setSequenceNumber(((TTPSegment)datagram.getData()).getSequenceNumber());
 					clientID.setPacketType(PacketType.ACK);
 					map.putIfAbsent(clientID, datagram);

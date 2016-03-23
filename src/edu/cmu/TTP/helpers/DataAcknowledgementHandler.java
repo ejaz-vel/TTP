@@ -19,11 +19,13 @@ public class DataAcknowledgementHandler implements Runnable {
 	private TTPServerHelperModel serverHelperModel = null;
 	private ConcurrentMap<ClientDataID, Datagram> map = null;
 	private String clientIPAddress = null;
+	private short port;
 
-	public DataAcknowledgementHandler(TTPServerHelperModel serverHelperModel, String clientIPAddress, ConcurrentMap<ClientDataID, Datagram> map) {
+	public DataAcknowledgementHandler(TTPServerHelperModel serverHelperModel, String clientIPAddress, short port, ConcurrentMap<ClientDataID, Datagram> map) {
 		this.serverHelperModel = serverHelperModel;
 		this.map = map;
 		this.clientIPAddress = clientIPAddress;
+		this.port = port;
 	}
 
 	@Override
@@ -33,6 +35,7 @@ public class DataAcknowledgementHandler implements Runnable {
 				int expAck = serverHelperModel.getExpectingAcknowledgement();
 				ClientDataID clientData = new ClientDataID();
 				clientData.setIPAddress(clientIPAddress);
+				clientData.setPort(port);
 				clientData.setPacketType(PacketType.ACK);
 				clientData.setSequenceNumber(expAck);
 
