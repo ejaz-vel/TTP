@@ -105,7 +105,7 @@ public class TTPService {
 			throws IOException, ClassNotFoundException, InterruptedException,
 			NoSuchAlgorithmException {
 		List<Datagram> data = getListOfSegments(datagram);
-		this.sendDataReqAck(datagram, data.size());
+		this.sendDataReqAck(datagram, data.size(), map);
 		TTPServerHelperModel serverHelperModel = new TTPServerHelperModel(this);
 		Thread t = new Thread(new DataAcknowledgementHandler(serverHelperModel,
 				datagram.getDstaddr(), datagram.getDstport(), map));
@@ -262,8 +262,7 @@ public class TTPService {
 		this.sendDatagram(ack);
 	}
 
-	private void sendDataReqAck(Datagram datagram, int size)
-			throws IOException, NoSuchAlgorithmException {
+	public void sendDataReqAck(Datagram datagram, int size, ConcurrentMap<ClientPacketID, Datagram> map) throws IOException, NoSuchAlgorithmException {
 		TTPUtil ttpUtil = new TTPUtil();
 		Datagram ack = new Datagram();
 		ack.setSrcaddr(datagram.getSrcaddr());
@@ -278,6 +277,12 @@ public class TTPService {
 		segment.setType(PacketType.DATA_REQ_ACK);
 		ack.setData(segment);
 		this.sendDatagram(ack);
+		
+		ClientPacketID clientID = new ClientPacketID();
+		clientID.setIPAddress(ack.getDstaddr());
+		clientID.setPort(ack.getDstport());
+		clientID.setPacketType(PacketType.DATA_REQ_ACK);
+		map.putIfAbsent(clientID, ack);
 	}
 
 	public void waitForClose() throws ClassNotFoundException, IOException {
