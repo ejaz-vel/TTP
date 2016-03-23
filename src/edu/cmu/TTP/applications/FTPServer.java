@@ -5,6 +5,7 @@ package edu.cmu.TTP.applications;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -33,6 +34,7 @@ public class FTPServer {
 
 	private static void run() throws IOException, ClassNotFoundException, InterruptedException, NoSuchAlgorithmException {
 		ConcurrentMap<ClientPacketID, Datagram> map = new ConcurrentHashMap<>();
+		ConcurrentMap<ClientPacketID, Long> threadMap = new ConcurrentHashMap<>();
 
 		while(true) {
 			try {
@@ -48,7 +50,7 @@ public class FTPServer {
 					
 					if (!map.containsKey(clientID)) {
 						// Spawn a new thread only for the first SYN packet to transfer the file contents
-						Thread t = new Thread(new FTPConnectionHandler(map, datagram, ttp));
+						Thread t = new Thread(new FTPConnectionHandler(map, threadMap, datagram, ttp));
 						t.start();
 					}
 					map.put(clientID, datagram);
@@ -108,6 +110,21 @@ public class FTPServer {
 					clientIDREQACK.setPacketType(PacketType.DATA_REQ_ACK);
 					dat = map.remove(clientIDREQACK);
 					System.out.println("Removed from map: " + dat);
+					
+					Long threadID = threadMap.get(clientIDREQSYN);
+					if (threadID != null) {
+						threadMap.remove(clientIDSYN);
+						
+						// Kill this thread
+						Set<Thread> setOfThread = Thread.getAllStackTraces().keySet();
+						 //Iterate over set to find the thread ID
+					    for(Thread thread : setOfThread){
+					        if(thread.getId() == threadID){
+					            thread.interrupt();
+					            break;
+					        }
+					    }
+					}
 
 					ttp.sendAck(datagram, null, PacketType.FIN_ACK);
 				}

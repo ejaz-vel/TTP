@@ -20,14 +20,16 @@ import edu.cmu.TTP.services.TTPService;
  */
 public class FTPConnectionHandler implements Runnable {
 	private ConcurrentMap<ClientPacketID, Datagram> map;
+	private ConcurrentMap<ClientPacketID, Long> threadMap;
 	private Datagram synDatagram;
 	private TTPService ttp;
 
 	public FTPConnectionHandler(ConcurrentMap<ClientPacketID, Datagram> map,
-			Datagram datagram, TTPService ttp) {
+			ConcurrentMap<ClientPacketID, Long> threadMap, Datagram datagram, TTPService ttp) {
 		this.map = map;
 		this.synDatagram = datagram;
 		this.ttp = ttp;
+		this.threadMap = threadMap;
 	}
 
 	@Override
@@ -37,6 +39,7 @@ public class FTPConnectionHandler implements Runnable {
 			clientData.setIPAddress(synDatagram.getSrcaddr());
 			clientData.setPort(synDatagram.getSrcport());
 			clientData.setPacketType(PacketType.DATA_REQ_SYN);
+			threadMap.putIfAbsent(clientData, Thread.currentThread().getId());
 			while (!map.containsKey(clientData));
 			
 			System.out.println("Received Filename in thread");
