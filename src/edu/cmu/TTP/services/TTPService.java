@@ -164,6 +164,7 @@ public class TTPService {
 	/**
 	 * Closes the connection by sending a fin packet and exits after getting an fin-ack from
 	 * the server
+	 * 
 	 * @param connectionEssentials 
 	 * @throws IOException 
 	 * @throws InterruptedException 

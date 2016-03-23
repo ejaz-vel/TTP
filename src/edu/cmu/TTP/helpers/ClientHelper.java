@@ -80,6 +80,11 @@ public class ClientHelper {
 					System.out.println("Sent ACK for Sequence: " + clientHelperModel.getExpectedSequenceNumber());
 					clientHelperModel.increamentExpectedSequenceNumber();
 					numberOfSegmentsRecieved++;
+				} else {
+					ttpService.sendAck(datagram,clientHelperModel.getExpectedSequenceNumber()-1
+							, PacketType.ACK);
+					System.out.println("Sent ACK for Sequence: " + 
+					(clientHelperModel.getExpectedSequenceNumber()-1));
 				}
 			}
 		}
