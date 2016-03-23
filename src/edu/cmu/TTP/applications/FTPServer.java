@@ -7,6 +7,7 @@ package edu.cmu.TTP.applications;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 
 import edu.cmu.TTP.models.Datagram;
 import edu.cmu.TTP.models.PacketType;
@@ -17,7 +18,7 @@ public class FTPServer {
 
 	private static TTPService ttp;
 
-	public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
+	public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException, NoSuchAlgorithmException {
 
 		if(args.length != 1) {
 			printUsage();
@@ -29,7 +30,7 @@ public class FTPServer {
 		run();
 	}
 
-	private static void run() throws IOException, ClassNotFoundException, InterruptedException {
+	private static void run() throws IOException, ClassNotFoundException, InterruptedException, NoSuchAlgorithmException {
 		Datagram datagram;
 		while(true) {
 			
@@ -70,6 +71,8 @@ public class FTPServer {
 				line = br.readLine();
 			}
 			br.close();
+			//TODO: remove
+			System.out.println(sb.toString());
 			return sb.toString();
 		} catch (IOException e) {
 			e.printStackTrace();

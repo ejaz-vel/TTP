@@ -4,6 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.SocketException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -66,14 +68,14 @@ public class TTPService {
 				Thread.sleep(200L); // Poll every 200ms
 				System.out.println("Still waiting for ACK");
 			}
-			System.out.println("Stopped waiting for ACK");
+			System.out.println("Stopped waiting for ACK "+t.getName());
 			t.interrupt();
 		}
 
 		return clientHelperModel.isAckReceived();
 	}
 
-	public void sendData(Datagram datagram) throws IOException, ClassNotFoundException, InterruptedException {
+	public void sendData(Datagram datagram) throws IOException, ClassNotFoundException, InterruptedException, NoSuchAlgorithmException {
 		List<Datagram> data = getListOfSegments(datagram);
 		this.sendDataReqAck(datagram, data.size());
 
@@ -237,7 +239,7 @@ public class TTPService {
 		this.sendDatagram(ack);
 	}
 
-	private void sendDataReqAck(Datagram datagram, int size) throws IOException {
+	private void sendDataReqAck(Datagram datagram, int size) throws IOException, NoSuchAlgorithmException {
 		Datagram ack = new Datagram();
 		ack.setSrcaddr(datagram.getSrcaddr());
 		ack.setSrcport(datagram.getSrcport());
@@ -245,10 +247,19 @@ public class TTPService {
 		ack.setDstport(datagram.getDstport());
 
 		TTPSegment segment = new TTPSegment();
+		MessageDigest md = MessageDigest.getInstance("MD5");
+		String md5Sum = calculateMd5(datagram.getData());new String(md.digest());
+		String bytesToBeSent = "numberOfSegments:"+String.valueOf(size)+",md5Sum:"+md5Sum;
+		System.out.println(bytesToBeSent);
 		segment.setData(String.valueOf(size).getBytes());
 		segment.setType(PacketType.DATA_REQ_ACK);
 		ack.setData(segment);
 		this.sendDatagram(ack);
+	}
+
+	private String calculateMd5(Object data) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	public void waitForClose() throws ClassNotFoundException, IOException {

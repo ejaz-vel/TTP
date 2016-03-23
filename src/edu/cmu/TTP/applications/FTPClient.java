@@ -24,6 +24,10 @@ public class FTPClient {
 		if(args.length != 3) {
 			printUsage();
 		}
+		System.out.println(Thread.activeCount());
+		for(Thread thread : Thread.getAllStackTraces().keySet()) {
+			System.out.println(thread.getId()+ " " +thread.getName());
+		}
 
 		int clientPort = Integer.parseInt(args[0]);
 		int serverPort = Integer.parseInt(args[1]);
@@ -40,20 +44,18 @@ public class FTPClient {
 		
 		// Setup the connection.
 		if (ttp.setupClientConnection(connectionEssentials)) {
-			
 			// SYN and ACK are done. Now request for the filename.
-			if((clientHelperModel= helper.requestForFile(fileName))!=null) {
-				// Start reading data.
-				helper.receiveDataHelper(clientHelperModel,fileName);
-			}
+			while((clientHelperModel= helper.requestForFile(fileName))==null);
+			// Start reading data.
+			helper.receiveDataHelper(clientHelperModel,fileName);
 			ttp.closeClientSideConnection(connectionEssentials);
 		} else {
 			System.out.println("Unable to setup connection with the server");
 		}
-//		System.out.println(Thread.activeCount());
-//		for(Thread thread : Thread.getAllStackTraces().keySet()) {
-//			System.out.println(thread.getId()+ " " +thread.getName());
-//		}
+		System.out.println(Thread.activeCount());
+		for(Thread thread : Thread.getAllStackTraces().keySet()) {
+			System.out.println(thread.getId()+ " " +thread.getName());
+		}
 	}
 
 	private static void printUsage() {
