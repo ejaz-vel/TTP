@@ -50,10 +50,7 @@ public class FTPClient {
 		} else {
 			System.out.println("Unable to setup connection with the server");
 		}
-		System.out.println(Thread.activeCount());
-		for(Thread thread : Thread.getAllStackTraces().keySet()) {
-			System.out.println(thread.getId()+ " " +thread.getName());
-		}
+		System.exit(1);
 	}
 	
     private static void printUsage() {
