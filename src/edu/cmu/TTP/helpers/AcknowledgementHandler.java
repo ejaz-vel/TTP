@@ -16,8 +16,8 @@ import edu.cmu.TTP.models.TTPSegment;
  */
 public class AcknowledgementHandler implements Runnable {
 
-	TTPClientHelperModel clientHelperModel = null;
-	PacketType requiredAckType = null;
+	private TTPClientHelperModel clientHelperModel = null;
+	private PacketType requiredAckType = null;
 	
 	public AcknowledgementHandler(TTPClientHelperModel clientHelperModel, PacketType requiredAckType) {
 		this.clientHelperModel = clientHelperModel;
@@ -34,9 +34,10 @@ public class AcknowledgementHandler implements Runnable {
 					if (segment.getType().equals(requiredAckType)) {
 						System.out.println("Recieved Acknowledgement");
 						clientHelperModel.setAckReceived(true);
-						if(segment.getType().equals(PacketType.DATA_REQ_ACK))
-							clientHelperModel.setNumberOfSegmentsToBeRecieved
-												(Integer.parseInt(new String(segment.getData())));
+						if(segment.getType().equals(PacketType.DATA_REQ_ACK)) {
+							String data  = new String((byte[])segment.getData());
+							extractInformationFromData(data);
+						}
 					}
 				}
 			} catch (IOException | ClassNotFoundException e) {
@@ -44,5 +45,13 @@ public class AcknowledgementHandler implements Runnable {
 			}
 		}
 		System.out.println("Ack recieve by thread id: "+ Thread.currentThread().getId());
+	}
+	
+	private void extractInformationFromData(String data) {
+		String temp[] = data.split(",");
+		String numberOfSegmentsToBeReceived = temp[0].split(":")[1];
+		String md5Sum = temp[1].split(":")[1];
+		clientHelperModel.setNumberOfSegmentsToBeRecieved(Integer.parseInt(numberOfSegmentsToBeReceived));
+		clientHelperModel.setMd5Sum(md5Sum);
 	}
 }

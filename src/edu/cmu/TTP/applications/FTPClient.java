@@ -5,6 +5,7 @@
 package edu.cmu.TTP.applications;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 
 import edu.cmu.TTP.helpers.ClientHelper;
 import edu.cmu.TTP.models.ConnectionEssentials;
@@ -19,8 +20,9 @@ public class FTPClient {
 	 * @throws ClassNotFoundException 
 	 * @throws InterruptedException 
 	 * @throws NumberFormatException 
+	 * @throws NoSuchAlgorithmException 
 	 */
-	public static void main(String[] args) throws IOException, ClassNotFoundException, NumberFormatException, InterruptedException {
+	public static void main(String[] args) throws IOException, ClassNotFoundException, NumberFormatException, InterruptedException, NoSuchAlgorithmException {
 		if(args.length != 3) {
 			printUsage();
 		}

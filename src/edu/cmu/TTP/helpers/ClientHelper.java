@@ -4,10 +4,11 @@
 package edu.cmu.TTP.helpers;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.SocketException;
+import java.security.NoSuchAlgorithmException;
 
 import edu.cmu.TTP.constants.TTPConstants;
 import edu.cmu.TTP.models.ConnectionEssentials;
@@ -68,7 +69,7 @@ public class ClientHelper {
 	}
 
 	public void receiveDataHelper(TTPClientHelperModel clientHelperModel, String filename) 
-			throws ClassNotFoundException, IOException {
+			throws ClassNotFoundException, IOException, NoSuchAlgorithmException {
 		int numberOfSegmentsRecieved = 0;
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		System.out.println("Number of Segments to be Received: " + clientHelperModel.getNumberOfSegmentsToBeRecieved());
@@ -95,11 +96,26 @@ public class ClientHelper {
 			}
 		}
 		System.out.println("Received File");
+		if(checkHashOfFileOrDiscard(clientHelperModel,outputStream)) {
+			writeBytesToFile(outputStream, filename);
+		} else {
+			System.out.println("Discarding the file since the md5 hash does not change");
+		}
+	}
 
+	private void writeBytesToFile(ByteArrayOutputStream outputStream, String filename) throws IOException {
 		//Store the data received in the localDisk
 		FileOutputStream out = new FileOutputStream("clientFiles/" + filename);
 		out.write(outputStream.toByteArray());
 		out.close();
 		System.out.println("Done saving the file");
+	}
+
+	private boolean checkHashOfFileOrDiscard(TTPClientHelperModel clientHelperModel, 
+			ByteArrayOutputStream outputStream) throws NoSuchAlgorithmException {
+		TTPUtil ttpUtil = new TTPUtil();
+		String originalMd5 = clientHelperModel.getMd5Sum();
+		String newMd5 = ttpUtil.calculateMd5(outputStream.toByteArray());
+		return originalMd5.equals(newMd5);
 	}
 }

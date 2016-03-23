@@ -16,6 +16,7 @@ import java.util.zip.Checksum;
 import edu.cmu.TTP.constants.TTPConstants;
 import edu.cmu.TTP.helpers.AcknowledgementHandler;
 import edu.cmu.TTP.helpers.DataAcknowledgementHandler;
+import edu.cmu.TTP.helpers.TTPUtil;
 import edu.cmu.TTP.models.ClientPacketID;
 import edu.cmu.TTP.models.ConnectionEssentials;
 import edu.cmu.TTP.models.Datagram;
@@ -240,6 +241,7 @@ public class TTPService {
 	}
 
 	private void sendDataReqAck(Datagram datagram, int size) throws IOException, NoSuchAlgorithmException {
+		TTPUtil ttpUtil = new TTPUtil();
 		Datagram ack = new Datagram();
 		ack.setSrcaddr(datagram.getSrcaddr());
 		ack.setSrcport(datagram.getSrcport());
@@ -248,19 +250,12 @@ public class TTPService {
 
 		TTPSegment segment = new TTPSegment();
 		
-		//String md5Sum = calculateMd5((byte[])datagram.getData());
-		//String bytesToBeSent = "numberOfSegments:"+String.valueOf(size)+",md5Sum:"+md5Sum;
-	//	System.out.println(bytesToBeSent);
-		segment.setData(String.valueOf(size).getBytes());
+		String md5Sum = ttpUtil.calculateMd5((byte[])datagram.getData());
+		String bytesToBeSent = "numberOfSegments:"+String.valueOf(size)+",md5Sum:"+md5Sum;
+		segment.setData(bytesToBeSent.getBytes());
 		segment.setType(PacketType.DATA_REQ_ACK);
 		ack.setData(segment);
 		this.sendDatagram(ack);
-	}
-
-	private String calculateMd5(byte[] data) throws NoSuchAlgorithmException {
-		MessageDigest md = MessageDigest.getInstance("MD5");
-		md.update(data);
-		return md.toString();
 	}
 
 	public void waitForClose() throws ClassNotFoundException, IOException {
