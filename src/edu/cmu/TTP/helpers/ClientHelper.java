@@ -4,7 +4,6 @@
 package edu.cmu.TTP.helpers;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.SocketException;
@@ -40,7 +39,7 @@ public class ClientHelper {
 			 */
 			Thread t = new Thread(new AcknowledgementHandler(requestFileHelper, PacketType.DATA_REQ_ACK));
 			t.start();
-			
+
 			TTPSegment ttpSegment = new TTPSegment();
 			ttpSegment.setType(PacketType.DATA_REQ_SYN);
 			ttpSegment.setSequenceNumber(null);
@@ -73,13 +72,15 @@ public class ClientHelper {
 		int numberOfSegmentsRecieved = 0;
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		System.out.println("Number of Segments to be Received: " + clientHelperModel.getNumberOfSegmentsToBeRecieved());
+
 		while(numberOfSegmentsRecieved < clientHelperModel.getNumberOfSegmentsToBeRecieved()) {
 			Datagram datagram = ttpService.receiveDatagram();
 			System.out.println("Data Segment Received: " + datagram);
 			if (datagram.getData() != null) {
 				TTPSegment segment = (TTPSegment) datagram.getData();
-				if(clientHelperModel.getExpectedSequenceNumber() == segment.getSequenceNumber() 
-						&& segment.getType().equals(PacketType.DATA)) {
+				if(clientHelperModel.getExpectedSequenceNumber() == segment.getSequenceNumber()
+						&& segment.getType().equals(PacketType.DATA)
+						&& datagram.getChecksum() == ttpService.calculateChecksum(datagram)) {
 					outputStream.write(segment.getData());
 
 					/* Send acknowledgment */
@@ -91,7 +92,7 @@ public class ClientHelper {
 					ttpService.sendAck(datagram,clientHelperModel.getExpectedSequenceNumber()-1
 							, PacketType.ACK);
 					System.out.println("Sent ACK for Sequence: " + 
-					(clientHelperModel.getExpectedSequenceNumber()-1));
+							(clientHelperModel.getExpectedSequenceNumber()-1));
 				}
 			}
 		}

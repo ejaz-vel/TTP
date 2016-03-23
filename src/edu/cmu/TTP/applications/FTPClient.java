@@ -26,10 +26,6 @@ public class FTPClient {
 		if(args.length != 3) {
 			printUsage();
 		}
-		System.out.println(Thread.activeCount());
-		for(Thread thread : Thread.getAllStackTraces().keySet()) {
-			System.out.println(thread.getId()+ " " +thread.getName());
-		}
 
 		int clientPort = Integer.parseInt(args[0]);
 		int serverPort = Integer.parseInt(args[1]);

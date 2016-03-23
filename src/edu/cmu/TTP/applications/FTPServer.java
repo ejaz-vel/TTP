@@ -3,8 +3,6 @@
  */
 package edu.cmu.TTP.applications;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,7 +33,7 @@ public class FTPServer {
 
 	private static void run() throws IOException, ClassNotFoundException, InterruptedException, NoSuchAlgorithmException {
 		ConcurrentMap<ClientPacketID, Datagram> map = new ConcurrentHashMap<>();
-		
+
 		while(true) {
 			try {
 				Datagram datagram = ttp.receiveDatagram();
@@ -47,13 +45,12 @@ public class FTPServer {
 					clientID.setIPAddress(datagram.getSrcaddr());
 					clientID.setPort(datagram.getSrcport());
 					clientID.setPacketType(PacketType.SYN);
-					Datagram data = map.putIfAbsent(clientID, datagram);
-
-					// Spawn a new thread to transfer the file contents
-					if (data == null) {
+					if (!map.containsKey(clientID)) {
+						// Spawn a new thread only for the first SYN packet to transfer the file contents
 						Thread t = new Thread(new FTPConnectionHandler(map, datagram, ttp));
 						t.start();
 					}
+					map.put(clientID, datagram);
 				} else if (((TTPSegment)datagram.getData()).getType().equals(PacketType.DATA_REQ_SYN)) {
 					System.out.println("Received File name at Server Side");
 					ClientPacketID clientID = new ClientPacketID();
@@ -61,6 +58,14 @@ public class FTPServer {
 					clientID.setPort(datagram.getSrcport());
 					clientID.setPacketType(PacketType.DATA_REQ_SYN);
 					map.putIfAbsent(clientID, datagram);
+
+					ClientPacketID clientID2 = new ClientPacketID();
+					clientID2.setIPAddress(datagram.getSrcaddr());
+					clientID2.setPort(datagram.getSrcport());
+					clientID2.setPacketType(PacketType.DATA_REQ_ACK);
+					if (map.containsKey(clientID2)) {
+						ttp.sendDatagram(map.get(clientID2));
+					}
 				} else if(((TTPSegment)datagram.getData()).getType().equals(PacketType.ACK)) {
 					System.out.println("Received ACK for data at Server Side");
 					ClientPacketID clientID = new ClientPacketID();
@@ -75,16 +80,33 @@ public class FTPServer {
 					}
 				} else if(((TTPSegment)datagram.getData()).getType().equals(PacketType.FIN)) {
 					System.out.println("Received FIN for data at Server Side");
-					ClientPacketID clientID = new ClientPacketID();
-					clientID.setIPAddress(datagram.getSrcaddr());
-					clientID.setPort(datagram.getSrcport());
-					clientID.setPacketType(PacketType.ACK);
-
-					map.remove(clientID);
-					clientID.setPacketType(PacketType.DATA_REQ_SYN);
-					map.remove(clientID);
-					clientID.setPacketType(PacketType.SYN);
-					map.remove(clientID);
+					ClientPacketID clientIDACK = new ClientPacketID();
+					clientIDACK.setIPAddress(datagram.getSrcaddr());
+					clientIDACK.setPort(datagram.getSrcport());
+					clientIDACK.setPacketType(PacketType.ACK);
+					Datagram dat = map.remove(clientIDACK);
+					System.out.println("Removed from map: " + dat);
+					
+					ClientPacketID clientIDREQSYN = new ClientPacketID();
+					clientIDREQSYN.setIPAddress(datagram.getSrcaddr());
+					clientIDREQSYN.setPort(datagram.getSrcport());
+					clientIDREQSYN.setPacketType(PacketType.DATA_REQ_SYN);
+					dat = map.remove(clientIDREQSYN);
+					System.out.println("Removed from map: " + dat);
+					
+					ClientPacketID clientIDSYN = new ClientPacketID();
+					clientIDSYN.setIPAddress(datagram.getSrcaddr());
+					clientIDSYN.setPort(datagram.getSrcport());
+					clientIDSYN.setPacketType(PacketType.SYN);
+					dat = map.remove(clientIDSYN);
+					System.out.println("Removed from map: " + dat);
+					
+					ClientPacketID clientIDREQACK = new ClientPacketID();
+					clientIDREQACK.setIPAddress(datagram.getSrcaddr());
+					clientIDREQACK.setPort(datagram.getSrcport());
+					clientIDREQACK.setPacketType(PacketType.DATA_REQ_ACK);
+					dat = map.remove(clientIDREQACK);
+					System.out.println("Removed from map: " + dat);
 
 					ttp.sendAck(datagram, null, PacketType.FIN_ACK);
 				}
@@ -95,26 +117,6 @@ public class FTPServer {
 		} 
 	}
 
-	private static Object getFileContents(String fileName) {
-		try {
-			BufferedReader br = new BufferedReader(new FileReader("serverFiles/" +  fileName));
-			StringBuilder sb = new StringBuilder();
-			String line = br.readLine();
-			while (line != null) {
-				sb.append(line);
-				sb.append(System.lineSeparator());
-				line = br.readLine();
-			}
-			br.close();
-			//TODO: remove
-			System.out.println(sb.toString());
-			return sb.toString();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-	
 	private static void printUsage() {
 		System.out.println("Usage: server <port>");
 		System.exit(-1);

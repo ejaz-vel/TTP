@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.SocketException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,7 +79,7 @@ public class TTPService {
 
 	public void sendData(Datagram datagram, ConcurrentMap<ClientPacketID, Datagram> map) throws IOException, ClassNotFoundException, InterruptedException, NoSuchAlgorithmException {
 		List<Datagram> data = getListOfSegments(datagram);
-		this.sendDataReqAck(datagram, data.size());
+		this.sendDataReqAck(datagram, data.size(), map);
 
 		TTPServerHelperModel serverHelperModel = new TTPServerHelperModel(this);
 		Thread t = new Thread(new DataAcknowledgementHandler(serverHelperModel, datagram.getDstaddr(), datagram.getDstport(), map));
@@ -180,12 +179,12 @@ public class TTPService {
 			transmissionAttempts++;
 			Thread t = new Thread(new AcknowledgementHandler(clientHelperModel, PacketType.FIN_ACK));
 			t.start();
-			
+
 			System.out.println("FIN Transmission attempt " + transmissionAttempts);
 			TTPSegment ttpSegment = new TTPSegment();
 			ttpSegment.setData(null);
 			ttpSegment.setType(PacketType.FIN);
-			
+
 			Datagram dt = new Datagram();
 			dt.setDstaddr(connectionEssentials.getServerAddress());
 			dt.setDstport(connectionEssentials.getServerPort());
@@ -240,7 +239,7 @@ public class TTPService {
 		this.sendDatagram(ack);
 	}
 
-	private void sendDataReqAck(Datagram datagram, int size) throws IOException, NoSuchAlgorithmException {
+	public void sendDataReqAck(Datagram datagram, int size, ConcurrentMap<ClientPacketID, Datagram> map) throws IOException, NoSuchAlgorithmException {
 		TTPUtil ttpUtil = new TTPUtil();
 		Datagram ack = new Datagram();
 		ack.setSrcaddr(datagram.getSrcaddr());
@@ -249,13 +248,19 @@ public class TTPService {
 		ack.setDstport(datagram.getDstport());
 
 		TTPSegment segment = new TTPSegment();
-		
+
 		String md5Sum = ttpUtil.calculateMd5((byte[])datagram.getData());
 		String bytesToBeSent = "numberOfSegments:"+String.valueOf(size)+",md5Sum:"+md5Sum;
 		segment.setData(bytesToBeSent.getBytes());
 		segment.setType(PacketType.DATA_REQ_ACK);
 		ack.setData(segment);
 		this.sendDatagram(ack);
+		
+		ClientPacketID clientID = new ClientPacketID();
+		clientID.setIPAddress(ack.getDstaddr());
+		clientID.setPort(ack.getDstport());
+		clientID.setPacketType(PacketType.DATA_REQ_ACK);
+		map.putIfAbsent(clientID, ack);
 	}
 
 	public void waitForClose() throws ClassNotFoundException, IOException {

@@ -36,7 +36,6 @@ public class FTPConnectionHandler implements Runnable {
 			
 			System.out.println("Received Filename in thread");
 			Datagram datagram = map.get(clientData);
-			map.remove(clientData);
 			
 			Datagram fileData = new Datagram();
 			fileData.setSrcaddr(datagram.getDstaddr());
