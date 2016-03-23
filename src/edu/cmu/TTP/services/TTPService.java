@@ -179,6 +179,9 @@ public class TTPService {
 			ttpSegment.setData(null);
 			ttpSegment.setType(PacketType.FIN);
 
+			Thread t = new Thread(new AcknowledgementHandler(clientHelperModel, PacketType.FIN_ACK));
+			t.start();
+			
 			Datagram dt = new Datagram();
 			dt.setDstaddr(connectionEssentials.getServerAddress());
 			dt.setDstport(connectionEssentials.getServerPort());
@@ -187,9 +190,6 @@ public class TTPService {
 			dt.setData(ttpSegment);
 			this.sendDatagram(dt);
 			System.out.println("Sent FIN Packet to server");
-
-			Thread t = new Thread(new AcknowledgementHandler(clientHelperModel, PacketType.FIN_ACK));
-			t.start();
 
 			long startTime = System.currentTimeMillis();
 			while (!clientHelperModel.isAckReceived()
@@ -228,7 +228,7 @@ public class TTPService {
 
 		TTPSegment segment = new TTPSegment();
 		segment.setData(null);
-		segment.setType(PacketType.ACK);
+		segment.setType(ackType);
 		if (sequenceNumber != null) {
 			segment.setSequenceNumber(sequenceNumber);
 		}

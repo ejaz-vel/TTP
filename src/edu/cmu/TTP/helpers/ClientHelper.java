@@ -4,6 +4,7 @@
 package edu.cmu.TTP.helpers;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.SocketException;
@@ -75,7 +76,7 @@ public class ClientHelper {
 					outputStream.write(segment.getData());
 					
 					/* Send acknowledgment */
-					ttpService.sendAck(datagram,clientHelperModel.getExpectedSequenceNumber(), null);
+					ttpService.sendAck(datagram,clientHelperModel.getExpectedSequenceNumber(), PacketType.ACK);
 					System.out.println("Sent ACK for Sequence: " + clientHelperModel.getExpectedSequenceNumber());
 					clientHelperModel.increamentExpectedSequenceNumber();
 					numberOfSegmentsRecieved++;
@@ -85,8 +86,8 @@ public class ClientHelper {
 		System.out.println("Received File");
 		
 		//Store the data received in the localDisk
-		PrintWriter out = new PrintWriter("clientFiles/" + filename);
-		out.print(new String(outputStream.toByteArray()));
+		FileOutputStream out = new FileOutputStream("clientFiles/" + filename);
+		out.write(outputStream.toByteArray());
 		out.close();
 		System.out.println("Done saving the file");
 	}

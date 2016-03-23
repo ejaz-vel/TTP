@@ -31,7 +31,7 @@ public class AcknowledgementHandler implements Runnable {
 				Datagram datagram = clientHelperModel.getTTPService().receiveDatagram();
 				if (datagram.getData() != null) {
 					TTPSegment segment = (TTPSegment) datagram.getData();
-					if (segment.getType() == requiredAckType) {
+					if (segment.getType().equals(requiredAckType)) {
 						System.out.println("Recieved Acknowledgement");
 						clientHelperModel.setAckReceived(true);
 						if(segment.getType().equals(PacketType.DATA_REQ_ACK))
