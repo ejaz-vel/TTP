@@ -14,7 +14,7 @@ import java.util.zip.Checksum;
 import edu.cmu.TTP.constants.TTPConstants;
 import edu.cmu.TTP.helpers.AcknowledgementHandler;
 import edu.cmu.TTP.helpers.DataAcknowledgementHandler;
-import edu.cmu.TTP.models.ClientDataID;
+import edu.cmu.TTP.models.ClientPacketID;
 import edu.cmu.TTP.models.ConnectionEssentials;
 import edu.cmu.TTP.models.Datagram;
 import edu.cmu.TTP.models.PacketType;
@@ -75,7 +75,7 @@ public class TTPService {
 		return clientHelperModel.isAckReceived();
 	}
 
-	public void sendData(Datagram datagram, ConcurrentMap<ClientDataID, Datagram> map) throws IOException, ClassNotFoundException, InterruptedException {
+	public void sendData(Datagram datagram, ConcurrentMap<ClientPacketID, Datagram> map) throws IOException, ClassNotFoundException, InterruptedException {
 		List<Datagram> data = getListOfSegments(datagram);
 		this.sendDataReqAck(datagram, data.size());
 

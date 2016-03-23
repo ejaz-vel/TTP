@@ -1,10 +1,9 @@
 package edu.cmu.TTP.models;
 
-public class ClientDataID {
+public class ClientPacketID {
 
 	private String IPAddress;
 	private short port;
-	private Integer sequenceNumber;
 	private PacketType packetType;
 	
 	public String getIPAddress() {
@@ -13,14 +12,6 @@ public class ClientDataID {
 	
 	public void setIPAddress(String iPAddress) {
 		IPAddress = iPAddress;
-	}
-	
-	public Integer getSequenceNumber() {
-		return sequenceNumber;
-	}
-	
-	public void setSequenceNumber(Integer sequenceNumber) {
-		this.sequenceNumber = sequenceNumber;
 	}
 
 	public PacketType getPacketType() {
@@ -31,6 +22,14 @@ public class ClientDataID {
 		this.packetType = packetType;
 	}
 
+	public short getPort() {
+		return port;
+	}
+
+	public void setPort(short port) {
+		this.port = port;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -38,7 +37,6 @@ public class ClientDataID {
 		result = prime * result + ((IPAddress == null) ? 0 : IPAddress.hashCode());
 		result = prime * result + ((packetType == null) ? 0 : packetType.hashCode());
 		result = prime * result + port;
-		result = prime * result + ((sequenceNumber == null) ? 0 : sequenceNumber.hashCode());
 		return result;
 	}
 
@@ -50,7 +48,7 @@ public class ClientDataID {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ClientDataID other = (ClientDataID) obj;
+		ClientPacketID other = (ClientPacketID) obj;
 		if (IPAddress == null) {
 			if (other.IPAddress != null)
 				return false;
@@ -60,19 +58,6 @@ public class ClientDataID {
 			return false;
 		if (port != other.port)
 			return false;
-		if (sequenceNumber == null) {
-			if (other.sequenceNumber != null)
-				return false;
-		} else if (!sequenceNumber.equals(other.sequenceNumber))
-			return false;
 		return true;
-	}
-
-	public short getPort() {
-		return port;
-	}
-
-	public void setPort(short port) {
-		this.port = port;
 	}
 }

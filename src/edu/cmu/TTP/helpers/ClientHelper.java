@@ -22,51 +22,53 @@ import edu.cmu.TTP.services.TTPService;
  *
  */
 public class ClientHelper {
-	
+
 	private ConnectionEssentials connEssentials;
 	private TTPService ttpService;
-	
+
 	public ClientHelper(ConnectionEssentials connEssentials, TTPService ttp) throws SocketException {
 		this.ttpService = ttp;
 		this.connEssentials = connEssentials;
 	}
-	
+
 	public TTPClientHelperModel requestForFile(String fileName) throws IOException, InterruptedException {
-		TTPSegment ttpSegment = new TTPSegment();
-		ttpSegment.setType(PacketType.DATA_REQ_SYN);
-		ttpSegment.setSequenceNumber(null);
-		ttpSegment.setData(fileName.getBytes());
-		
-		Datagram datagram = new Datagram();
-		datagram.setData(ttpSegment);
-		datagram.setSrcaddr(connEssentials.getClientAddress());
-		datagram.setDstaddr(connEssentials.getServerAddress());
-		datagram.setDstport(connEssentials.getServerPort());
-		datagram.setSrcport(connEssentials.getClientPort());
-		// Send request for file.
-		ttpService.sendDatagram(datagram);
-		System.out.println("Sent request for File");
-		
-		/* Wait for acknowledgement. Acknowledgement will also contain number of
-		 * expected segments. Keep polling till timeout, otherwise, re-send.
-		 */
 		TTPClientHelperModel requestFileHelper = new TTPClientHelperModel(ttpService);
-		Thread t = new Thread(new AcknowledgementHandler(requestFileHelper, PacketType.DATA_REQ_ACK));
-		t.start();
-		
-		long startTime = System.currentTimeMillis();
-		while(!requestFileHelper.isAckReceived()
-				&& (System.currentTimeMillis() - startTime) < TTPConstants.RETRANSMISSION_TIMEOUT) {
-			Thread.sleep(200L);  // Poll every 200ms
-			System.out.println("Still waiting for File ACK");
+		while(!requestFileHelper.isAckReceived()) {
+			/* Wait for acknowledgement. Acknowledgement will also contain number of
+			 * expected segments. Keep polling till timeout, otherwise, re-send.
+			 */
+			Thread t = new Thread(new AcknowledgementHandler(requestFileHelper, PacketType.DATA_REQ_ACK));
+			t.start();
+			
+			TTPSegment ttpSegment = new TTPSegment();
+			ttpSegment.setType(PacketType.DATA_REQ_SYN);
+			ttpSegment.setSequenceNumber(null);
+			ttpSegment.setData(fileName.getBytes());
+
+			Datagram datagram = new Datagram();
+			datagram.setData(ttpSegment);
+			datagram.setSrcaddr(connEssentials.getClientAddress());
+			datagram.setDstaddr(connEssentials.getServerAddress());
+			datagram.setDstport(connEssentials.getServerPort());
+			datagram.setSrcport(connEssentials.getClientPort());
+			// Send request for file.
+			ttpService.sendDatagram(datagram);
+			System.out.println("Sent request for File");
+
+			long startTime = System.currentTimeMillis();
+			while(!requestFileHelper.isAckReceived()
+					&& (System.currentTimeMillis() - startTime) < TTPConstants.RETRANSMISSION_TIMEOUT) {
+				Thread.sleep(200L);  // Poll every 200ms
+				System.out.println("Still waiting for File ACK");
+			}
+			System.out.println("Stopped waiting for File ACK");
+			t.interrupt();
 		}
-		System.out.println("Stopped waiting for File ACK");
-		t.interrupt();
 		return requestFileHelper;
 	}
-	
+
 	public void receiveDataHelper(TTPClientHelperModel clientHelperModel, String filename) 
-														throws ClassNotFoundException, IOException {
+			throws ClassNotFoundException, IOException {
 		int numberOfSegmentsRecieved = 0;
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		System.out.println("Number of Segments to be Received: " + clientHelperModel.getNumberOfSegmentsToBeRecieved());
@@ -78,7 +80,7 @@ public class ClientHelper {
 				if(clientHelperModel.getExpectedSequenceNumber() == segment.getSequenceNumber() 
 						&& segment.getType().equals(PacketType.DATA)) {
 					outputStream.write(segment.getData());
-					
+
 					/* Send acknowledgment */
 					ttpService.sendAck(datagram,clientHelperModel.getExpectedSequenceNumber(), PacketType.ACK);
 					System.out.println("Sent ACK for Sequence: " + clientHelperModel.getExpectedSequenceNumber());
@@ -93,7 +95,7 @@ public class ClientHelper {
 			}
 		}
 		System.out.println("Received File");
-		
+
 		//Store the data received in the localDisk
 		FileOutputStream out = new FileOutputStream("clientFiles/" + filename);
 		out.write(outputStream.toByteArray());
