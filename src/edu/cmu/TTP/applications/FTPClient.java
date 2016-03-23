@@ -46,7 +46,7 @@ public class FTPClient {
 				// Start reading data.
 				helper.receiveDataHelper(clientHelperModel,fileName);
 			}
-			ttp.closeConnection();
+			ttp.closeClientSideConnection(connectionEssentials);
 		} else {
 			System.out.println("Unable to setup connection with the server");
 		}

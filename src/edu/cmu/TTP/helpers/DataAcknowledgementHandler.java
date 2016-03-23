@@ -30,6 +30,7 @@ public class DataAcknowledgementHandler implements Runnable {
 				if (dat.getData() != null) {
 					TTPSegment segment = (TTPSegment) dat.getData();
 					System.out.println("Data Ack Recieved: " + segment);
+					System.out.println("Ack recieve by thread id: "+ Thread.currentThread().getId());
 					if (segment.getType() == PacketType.ACK 
 							&& segment.getSequenceNumber() == serverHelperModel.getExpectingAcknowledgement()) {
 						serverHelperModel.setExpectingAcknowledgement
@@ -38,7 +39,8 @@ public class DataAcknowledgementHandler implements Runnable {
 				}
 			} catch (IOException | ClassNotFoundException e) {
 				e.printStackTrace();
-			}
+			} 
 		}
+		
 	}
 }
