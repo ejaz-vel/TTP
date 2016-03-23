@@ -1,15 +1,20 @@
 package edu.cmu.TTP.models;
 
+/**
+ * @author Ejaz
+ * 
+ *         Model class to identify an individual client.
+ *
+ */
 public class ClientPacketID {
-
 	private String IPAddress;
 	private short port;
 	private PacketType packetType;
-	
+
 	public String getIPAddress() {
 		return IPAddress;
 	}
-	
+
 	public void setIPAddress(String iPAddress) {
 		IPAddress = iPAddress;
 	}

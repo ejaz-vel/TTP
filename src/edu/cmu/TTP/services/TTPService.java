@@ -24,6 +24,13 @@ import edu.cmu.TTP.models.TTPClientHelperModel;
 import edu.cmu.TTP.models.TTPSegment;
 import edu.cmu.TTP.models.TTPServerHelperModel;
 
+/**
+ * @author apurv
+ * 
+ *         Class which contains methods to service both client side and server
+ *         side connections.
+ *
+ */
 public class TTPService {
 	private DatagramService datagramService;
 
@@ -110,7 +117,6 @@ public class TTPService {
 		Thread t = new Thread(new DataAcknowledgementHandler(serverHelperModel,
 				datagram.getDstaddr(), datagram.getDstport(), map));
 		t.start();
-		
 		// While we have not received acknowledgement for the entire data,
 		// continue sending
 		while (serverHelperModel.getExpectingAcknowledgement() < data.size()) {
@@ -119,7 +125,6 @@ public class TTPService {
 			int endOFWindow = Math.min(data.size(),
 					serverHelperModel.getStartingWindowSegment()
 							+ TTPConstants.WINDOW_SIZE);
-			
 			// While we have not received acknowledgement for all packets in the
 			// window OR
 			// the transmission timeout is over
@@ -134,6 +139,15 @@ public class TTPService {
 		t.interrupt();
 	}
 
+	/**
+	 * Method responsible for sending all datagrams in the current window.
+	 * 
+	 * @param startingWindowSegment
+	 * @param data
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 * @throws InterruptedException
+	 */
 	private void sendNSegments(int startingWindowSegment, List<Datagram> data)
 			throws IOException, ClassNotFoundException, InterruptedException {
 		for (int i = startingWindowSegment; i < startingWindowSegment
@@ -180,11 +194,24 @@ public class TTPService {
 		return datagramList;
 	}
 
+	/**
+	 * Method to receive datagram by calling the datagram service layer
+	 * 
+	 * @return
+	 * @throws ClassNotFoundException
+	 * @throws IOException
+	 */
 	public Datagram receiveDatagram() throws ClassNotFoundException, IOException {
 		Datagram receivedData = datagramService.receiveDatagram();
 		return receivedData;
 	}
 
+	/**
+	 * Method to send datagram by calling the datagram service layer
+	 * 
+	 * @param datagram
+	 * @throws IOException
+	 */
 	public void sendDatagram(Datagram datagram) throws IOException {
 		datagram.setChecksum(calculateChecksum(datagram));
 		datagramService.sendDatagram(datagram);
@@ -233,6 +260,13 @@ public class TTPService {
 		return clientHelperModel.isAckReceived();
 	}
 
+	/**
+	 * Method calculates the Checksum of a datgram.
+	 * 
+	 * @param datagram
+	 * @return
+	 * @throws IOException
+	 */
 	public long calculateChecksum(Datagram datagram) throws IOException {
 		long prevChecksum = datagram.getChecksum();
 		datagram.setChecksum(0);
@@ -247,6 +281,13 @@ public class TTPService {
 		return calcChecksum;
 	}
 
+	/** 
+	 * Responsible for sending acks in response to a packet.
+	 * @param datagram
+	 * @param sequenceNumber
+	 * @param ackType
+	 * @throws IOException
+	 */
 	public void sendAck(Datagram datagram, Integer sequenceNumber, PacketType ackType)
 			throws IOException {
 		Datagram ack = new Datagram();
@@ -264,7 +305,20 @@ public class TTPService {
 		this.sendDatagram(ack);
 	}
 
-	public void sendDataReqAck(Datagram datagram, int size, ConcurrentMap<ClientPacketID, Datagram> map) throws IOException, NoSuchAlgorithmException {
+	/**
+	 * Constructs and sends the DATA_REQ_ACK in response to the DATA_REQ_SYN.
+	 * This also conveys additional information about number of segments to be
+	 * sent and the md5sum of the original file.
+	 * 
+	 * @param datagram
+	 * @param size
+	 * @param map
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
+	 */
+	public void sendDataReqAck(Datagram datagram, int size,
+			ConcurrentMap<ClientPacketID, Datagram> map)
+					throws IOException, NoSuchAlgorithmException {
 		TTPUtil ttpUtil = new TTPUtil();
 		Datagram ack = new Datagram();
 		ack.setSrcaddr(datagram.getSrcaddr());
@@ -279,20 +333,10 @@ public class TTPService {
 		segment.setType(PacketType.DATA_REQ_ACK);
 		ack.setData(segment);
 		this.sendDatagram(ack);
-		
 		ClientPacketID clientID = new ClientPacketID();
 		clientID.setIPAddress(ack.getDstaddr());
 		clientID.setPort(ack.getDstport());
 		clientID.setPacketType(PacketType.DATA_REQ_ACK);
 		map.putIfAbsent(clientID, ack);
-	}
-
-	public void waitForClose() throws ClassNotFoundException, IOException {
-		Datagram fin = receiveDatagram();
-		if (fin.getData() != null) {
-			if (((TTPSegment) fin.getData()).getType().equals(PacketType.FIN)) {
-				sendAck(fin, null, PacketType.FIN_ACK);
-			}
-		}
 	}
 }

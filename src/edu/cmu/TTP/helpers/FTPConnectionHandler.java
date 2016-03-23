@@ -15,8 +15,11 @@ import edu.cmu.TTP.services.TTPService;
 /**
  * @author ejaz
  * 
- * 
- *
+ *         FTPServers backbone. Whenever, the server receives a SYN for the
+ *         first time, the FTP server creates a thread of this class and enters
+ *         the mapping of the client to the created thread for future
+ *         correspondences into the map. This thread then handles all the data
+ *         transfer.
  */
 public class FTPConnectionHandler implements Runnable {
 	private ConcurrentMap<ClientPacketID, Datagram> map;
@@ -25,7 +28,8 @@ public class FTPConnectionHandler implements Runnable {
 	private TTPService ttp;
 
 	public FTPConnectionHandler(ConcurrentMap<ClientPacketID, Datagram> map,
-			ConcurrentMap<ClientPacketID, Long> threadMap, Datagram datagram, TTPService ttp) {
+			ConcurrentMap<ClientPacketID, Long> threadMap, Datagram datagram,
+			TTPService ttp) {
 		this.map = map;
 		this.synDatagram = datagram;
 		this.ttp = ttp;
@@ -40,11 +44,10 @@ public class FTPConnectionHandler implements Runnable {
 			clientData.setPort(synDatagram.getSrcport());
 			clientData.setPacketType(PacketType.DATA_REQ_SYN);
 			threadMap.putIfAbsent(clientData, Thread.currentThread().getId());
-			while (!map.containsKey(clientData));
-			
+			while (!map.containsKey(clientData))
+				;
 			System.out.println("Received Filename in thread");
 			Datagram datagram = map.get(clientData);
-			
 			Datagram fileData = new Datagram();
 			fileData.setSrcaddr(datagram.getDstaddr());
 			fileData.setSrcport(datagram.getDstport());
@@ -60,6 +63,12 @@ public class FTPConnectionHandler implements Runnable {
 		}
 	}
 
+	/**
+	 * Returns all bytes for a given filename
+	 * 
+	 * @param fileName
+	 * @return
+	 */
 	private byte[] getFileContents(String fileName) {
 		try {
 			return Files.readAllBytes(Paths.get("serverFiles/" + fileName));

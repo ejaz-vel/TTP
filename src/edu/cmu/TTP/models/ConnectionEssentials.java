@@ -4,22 +4,21 @@
 package edu.cmu.TTP.models;
 
 /**
- * @author apurv
- *
+ * @author apurv Container class for all essential details of the connection.
  */
 public class ConnectionEssentials {
-
 	private String clientAddress;
 	private String serverAddress;
 	private short clientPort;
 	private short serverPort;
-	
-	public ConnectionEssentials(String clientAddress, String serverAddress, int clientPort, int serverPort) {
+
+	public ConnectionEssentials(String clientAddress, String serverAddress,
+			int clientPort, int serverPort) {
 		super();
 		this.clientAddress = clientAddress;
 		this.serverAddress = serverAddress;
-		this.clientPort = (short)clientPort;
-		this.serverPort = (short)serverPort;
+		this.clientPort = (short) clientPort;
+		this.serverPort = (short) serverPort;
 	}
 
 	public String getClientAddress() {
@@ -40,7 +39,8 @@ public class ConnectionEssentials {
 
 	@Override
 	public String toString() {
-		return "ConnectionEssentials [clientAddress=" + clientAddress + ", serverAddress=" + serverAddress
-				+ ", clientPort=" + clientPort + ", serverPort=" + serverPort + "]";
+		return "ConnectionEssentials [clientAddress=" + clientAddress + ", serverAddress="
+				+ serverAddress + ", clientPort=" + clientPort + ", serverPort="
+				+ serverPort + "]";
 	}
 }

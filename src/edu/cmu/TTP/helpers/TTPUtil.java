@@ -8,10 +8,16 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  * @author apurv
- *
+ * Utility class for TTP
  */
 public class TTPUtil {
 	
+	/**
+	 * Calculates md5 for a given byte array
+	 * @param data
+	 * @return
+	 * @throws NoSuchAlgorithmException
+	 */
 	public String calculateMd5(byte[] data) throws NoSuchAlgorithmException {
 		MessageDigest md = MessageDigest.getInstance("MD5");
 		md.update(data);
