@@ -81,7 +81,7 @@ public class ClientHelper {
 			System.out.println("Sent request for File");
 			long startTime = System.currentTimeMillis();
 			while (!requestFileHelper.isAckReceived() && (System.currentTimeMillis()
-					- startTime) < TTPConstants.RETRANSMISSION_TIMEOUT) {
+					- startTime) < ttpService.RETRANSMISSION_TIMEOUT) {
 				Thread.sleep(200L); // Poll every 200ms
 				System.out.println("Still waiting for File ACK");
 			}

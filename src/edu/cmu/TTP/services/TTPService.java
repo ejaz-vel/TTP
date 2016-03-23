@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
+import edu.cmu.TTP.applications.FTPServer;
 import edu.cmu.TTP.constants.TTPConstants;
 import edu.cmu.TTP.helpers.AcknowledgementHandler;
 import edu.cmu.TTP.helpers.DataAcknowledgementHandler;
@@ -32,10 +33,13 @@ import edu.cmu.TTP.models.TTPServerHelperModel;
  *
  */
 public class TTPService {
+	
 	private DatagramService datagramService;
+	public int RETRANSMISSION_TIMEOUT;
 
-	public TTPService(int port) throws SocketException {
+	public TTPService(int port, int timeout) throws SocketException {
 		datagramService = new DatagramService(port, 10);
+		this.RETRANSMISSION_TIMEOUT = timeout;
 	}
 
 	/**
@@ -72,7 +76,7 @@ public class TTPService {
 			t.start();
 			long startTime = System.currentTimeMillis();
 			while (!clientHelperModel.isAckReceived() && (System.currentTimeMillis()
-					- startTime) < TTPConstants.RETRANSMISSION_TIMEOUT) {
+					- startTime) < this.RETRANSMISSION_TIMEOUT) {
 				Thread.sleep(200L); // Poll every 200ms
 				System.out.println("Still waiting for ACK");
 			}
@@ -124,13 +128,13 @@ public class TTPService {
 			long startTime = System.currentTimeMillis();
 			int endOFWindow = Math.min(data.size(),
 					serverHelperModel.getStartingWindowSegment()
-							+ TTPConstants.WINDOW_SIZE);
+							+ FTPServer.WINDOW_SIZE);
 			// While we have not received acknowledgement for all packets in the
 			// window OR
 			// the transmission timeout is over
 			while (serverHelperModel.getExpectingAcknowledgement() < endOFWindow
 					&& (System.currentTimeMillis()
-							- startTime) < TTPConstants.RETRANSMISSION_TIMEOUT) {
+							- startTime) < this.RETRANSMISSION_TIMEOUT) {
 				Thread.sleep(200L); // Poll every 200ms
 			}
 			serverHelperModel.setStartingWindowSegment(
@@ -151,7 +155,7 @@ public class TTPService {
 	private void sendNSegments(int startingWindowSegment, List<Datagram> data)
 			throws IOException, ClassNotFoundException, InterruptedException {
 		for (int i = startingWindowSegment; i < startingWindowSegment
-				+ TTPConstants.WINDOW_SIZE; i++) {
+				+ FTPServer.WINDOW_SIZE; i++) {
 			if (i >= data.size()) {
 				break;
 			}
@@ -170,7 +174,6 @@ public class TTPService {
 	 */
 	private List<Datagram> getListOfSegments(Datagram datagram) throws IOException {
 		byte[] data = (byte[]) datagram.getData();
-		System.out.println(new String(data));
 		List<Datagram> datagramList = new ArrayList<>();
 		int numSegments = (int) Math
 				.ceil((data.length + 0.0) / TTPConstants.MAX_SEGMENT_SIZE);
@@ -250,7 +253,7 @@ public class TTPService {
 			System.out.println("Sent FIN Packet to server");
 			long startTime = System.currentTimeMillis();
 			while (!clientHelperModel.isAckReceived() && (System.currentTimeMillis()
-					- startTime) < TTPConstants.RETRANSMISSION_TIMEOUT) {
+					- startTime) < this.RETRANSMISSION_TIMEOUT) {
 				Thread.sleep(200L); // Poll every 200ms
 				System.out.println("Still waiting for FIN_ACK");
 			}

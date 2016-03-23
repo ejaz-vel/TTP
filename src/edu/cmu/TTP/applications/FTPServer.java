@@ -48,15 +48,19 @@ import edu.cmu.TTP.services.TTPService;
  */
 public class FTPServer {
 	private static TTPService ttp;
+	public static int WINDOW_SIZE;
 
 	public static void main(String[] args) throws IOException, ClassNotFoundException,
 			InterruptedException, NoSuchAlgorithmException {
-		if (args.length != 1) {
+		if (args.length != 3) {
 			printUsage();
 		}
+		
 		System.out.println("Starting Server ...");
 		int port = Integer.parseInt(args[0]);
-		ttp = new TTPService(port);
+		int timeout = Integer.parseInt(args[1]);
+		WINDOW_SIZE = Integer.parseInt(args[2]);
+		ttp = new TTPService(port, timeout);
 		run();
 	}
 
@@ -160,7 +164,7 @@ public class FTPServer {
 	}
 
 	private static void printUsage() {
-		System.out.println("Usage: server <port>");
+		System.out.println("Usage: server <port> <timeout> <window size>");
 		System.exit(-1);
 	}
 }
