@@ -77,7 +77,7 @@ public class TTPService {
 		return clientHelperModel.isAckReceived();
 	}
 
-	public void sendData(Datagram datagram, ConcurrentMap<ClientPacketID, Datagram> map) throws IOException, ClassNotFoundException, InterruptedException {
+	public void sendData(Datagram datagram, ConcurrentMap<ClientPacketID, Datagram> map) throws IOException, ClassNotFoundException, InterruptedException, NoSuchAlgorithmException {
 		List<Datagram> data = getListOfSegments(datagram);
 		this.sendDataReqAck(datagram, data.size());
 
@@ -125,10 +125,8 @@ public class TTPService {
 	 * @throws IOException
 	 */
 	private List<Datagram> getListOfSegments(Datagram datagram) throws IOException {
-		ByteArrayOutputStream b = new ByteArrayOutputStream();
-		ObjectOutputStream o = new ObjectOutputStream(b);
-		o.writeObject(datagram.getData());
-		byte[] data = b.toByteArray();
+		byte[] data = (byte[])datagram.getData();
+		System.out.println(new String(data));
 
 		List<Datagram> datagramList = new ArrayList<>();
 		int numSegments = (int) Math.ceil((data.length + 0.0) / TTPConstants.MAX_SEGMENT_SIZE);
@@ -249,19 +247,20 @@ public class TTPService {
 		ack.setDstport(datagram.getDstport());
 
 		TTPSegment segment = new TTPSegment();
-		MessageDigest md = MessageDigest.getInstance("MD5");
-		String md5Sum = calculateMd5(datagram.getData());new String(md.digest());
-		String bytesToBeSent = "numberOfSegments:"+String.valueOf(size)+",md5Sum:"+md5Sum;
-		System.out.println(bytesToBeSent);
+		
+		//String md5Sum = calculateMd5((byte[])datagram.getData());
+		//String bytesToBeSent = "numberOfSegments:"+String.valueOf(size)+",md5Sum:"+md5Sum;
+	//	System.out.println(bytesToBeSent);
 		segment.setData(String.valueOf(size).getBytes());
 		segment.setType(PacketType.DATA_REQ_ACK);
 		ack.setData(segment);
 		this.sendDatagram(ack);
 	}
 
-	private String calculateMd5(Object data) {
-		// TODO Auto-generated method stub
-		return null;
+	private String calculateMd5(byte[] data) throws NoSuchAlgorithmException {
+		MessageDigest md = MessageDigest.getInstance("MD5");
+		md.update(data);
+		return md.toString();
 	}
 
 	public void waitForClose() throws ClassNotFoundException, IOException {

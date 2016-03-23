@@ -3,10 +3,13 @@
  */
 package edu.cmu.TTP.applications;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
 import edu.cmu.TTP.helpers.FTPConnectionHandler;
 import edu.cmu.TTP.models.ClientPacketID;
 import edu.cmu.TTP.models.Datagram;
@@ -31,8 +34,8 @@ public class FTPServer {
 	}
 
 	private static void run() throws IOException, ClassNotFoundException, InterruptedException, NoSuchAlgorithmException {
-		Datagram datagram;
 		ConcurrentMap<ClientPacketID, Datagram> map = new ConcurrentHashMap<>();
+		
 		while(true) {
 			try {
 				Datagram datagram = ttp.receiveDatagram();
@@ -90,6 +93,7 @@ public class FTPServer {
 		}
 		return null;
 	}
+	
 	private static void printUsage() {
 		System.out.println("Usage: server <port>");
 		System.exit(-1);

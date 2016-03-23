@@ -1,8 +1,9 @@
 package edu.cmu.TTP.helpers;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.ConcurrentMap;
 
 import edu.cmu.TTP.models.ClientPacketID;
@@ -46,21 +47,15 @@ public class FTPConnectionHandler implements Runnable {
 			ttp.sendData(fileData, map);
 		} catch(IOException | ClassNotFoundException | InterruptedException e) {
 			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	
-	private Object getFileContents(String fileName) {
+	private byte[] getFileContents(String fileName) {
 		try {
-			BufferedReader br = new BufferedReader(new FileReader("serverFiles/" +  fileName));
-			StringBuilder sb = new StringBuilder();
-			String line = br.readLine();
-			while (line != null) {
-				sb.append(line);
-				sb.append(System.lineSeparator());
-				line = br.readLine();
-			}
-			br.close();
-			return sb.toString();
+			return Files.readAllBytes(Paths.get("serverFiles/" +  fileName));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
