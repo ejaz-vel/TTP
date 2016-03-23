@@ -37,11 +37,11 @@ public class FTPConnectionHandler implements Runnable {
 			clientData.setIPAddress(synDatagram.getSrcaddr());
 			clientData.setPort(synDatagram.getSrcport());
 			clientData.setPacketType(PacketType.DATA_REQ_SYN);
-			while (!map.containsKey(clientData))
-				;
+			while (!map.containsKey(clientData));
+			
 			System.out.println("Received Filename in thread");
 			Datagram datagram = map.get(clientData);
-			map.remove(clientData);
+			
 			Datagram fileData = new Datagram();
 			fileData.setSrcaddr(datagram.getDstaddr());
 			fileData.setSrcport(datagram.getDstport());

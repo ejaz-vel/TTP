@@ -110,6 +110,7 @@ public class TTPService {
 		Thread t = new Thread(new DataAcknowledgementHandler(serverHelperModel,
 				datagram.getDstaddr(), datagram.getDstport(), map));
 		t.start();
+		
 		// While we have not received acknowledgement for the entire data,
 		// continue sending
 		while (serverHelperModel.getExpectingAcknowledgement() < data.size()) {
@@ -118,6 +119,7 @@ public class TTPService {
 			int endOFWindow = Math.min(data.size(),
 					serverHelperModel.getStartingWindowSegment()
 							+ TTPConstants.WINDOW_SIZE);
+			
 			// While we have not received acknowledgement for all packets in the
 			// window OR
 			// the transmission timeout is over

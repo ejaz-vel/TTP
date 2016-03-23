@@ -45,6 +45,7 @@ public class FTPServer {
 					clientID.setIPAddress(datagram.getSrcaddr());
 					clientID.setPort(datagram.getSrcport());
 					clientID.setPacketType(PacketType.SYN);
+					
 					if (!map.containsKey(clientID)) {
 						// Spawn a new thread only for the first SYN packet to transfer the file contents
 						Thread t = new Thread(new FTPConnectionHandler(map, datagram, ttp));
