@@ -3,11 +3,12 @@
  */
 package edu.cmu.TTP.applications;
 
-
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
+import edu.cmu.TTP.helpers.FTPConnectionHandler;
+import edu.cmu.TTP.models.ClientDataID;
 import edu.cmu.TTP.models.Datagram;
 import edu.cmu.TTP.models.PacketType;
 import edu.cmu.TTP.models.TTPSegment;
@@ -30,53 +31,40 @@ public class FTPServer {
 	}
 
 	private static void run() throws IOException, ClassNotFoundException, InterruptedException {
-		Datagram datagram;
+		ConcurrentMap<ClientDataID, Datagram> map = new ConcurrentHashMap<>();
+
 		while(true) {
-			
-			// Wait for a Syn.
-			System.out.println("Waiting for a SYN packet");
-//			System.out.println(Thread.activeCount());
-//			for(Thread thread : Thread.getAllStackTraces().keySet()) {
-//				System.out.println(thread.getId()+ " " +thread.getName());
-//			}
-			datagram = ttp.receiveDatagram();
-			if(((TTPSegment)datagram.getData()).getType().equals(PacketType.SYN)) {
-				System.out.println("Received SYN datagram from " + datagram);
-				ttp.sendAck(datagram, null, PacketType.ACK);
-				
-				datagram = ttp.receiveDatagram();
-				System.out.println("Received Data datagram from " + datagram);
-				
-				Datagram fileData = new Datagram();
-				fileData.setSrcaddr(datagram.getDstaddr());
-				fileData.setSrcport(datagram.getDstport());
-				fileData.setDstaddr(datagram.getSrcaddr());
-				fileData.setDstport(datagram.getSrcport());
-				fileData.setData(getFileContents(datagram.getData().toString()));
-				ttp.sendData(fileData);
-				ttp.waitForClose();
+			try {
+				Datagram datagram = ttp.receiveDatagram();
+				if(((TTPSegment)datagram.getData()).getType().equals(PacketType.SYN)) {
+					System.out.println("Received SYN datagram from " + datagram);
+					ttp.sendAck(datagram, null);
+					
+					// Spawn a new thread to transfer the file contents
+					Thread t = new Thread(new FTPConnectionHandler(map, datagram, ttp));
+					t.start();
+				} else if (((TTPSegment)datagram.getData()).getType().equals(PacketType.DATA_REQ_SYN)) {
+					System.out.println("Received File name at Server Side");
+					ClientDataID clientID = new ClientDataID();
+					clientID.setIPAddress(datagram.getSrcaddr());
+					clientID.setSequenceNumber(null);
+					clientID.setPacketType(PacketType.DATA_REQ_SYN);
+					map.putIfAbsent(clientID, datagram);
+				} else if(((TTPSegment)datagram.getData()).getType().equals(PacketType.ACK)) {
+					System.out.println("Received ACK for data at Server Side");
+					ClientDataID clientID = new ClientDataID();
+					clientID.setIPAddress(datagram.getSrcaddr());
+					clientID.setSequenceNumber(((TTPSegment)datagram.getData()).getSequenceNumber());
+					clientID.setPacketType(PacketType.ACK);
+					map.putIfAbsent(clientID, datagram);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				continue;
 			}
-		}
+		} 
 	}
 
-	private static Object getFileContents(String fileName) {
-		try {
-			BufferedReader br = new BufferedReader(new FileReader("serverFiles/" +  fileName));
-			StringBuilder sb = new StringBuilder();
-			String line = br.readLine();
-			while (line != null) {
-				sb.append(line);
-				sb.append(System.lineSeparator());
-				line = br.readLine();
-			}
-			br.close();
-			return sb.toString();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-	
 	private static void printUsage() {
 		System.out.println("Usage: server <port>");
 		System.exit(-1);

@@ -7,12 +7,14 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ConcurrentMap;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 import edu.cmu.TTP.constants.TTPConstants;
 import edu.cmu.TTP.helpers.AcknowledgementHandler;
 import edu.cmu.TTP.helpers.DataAcknowledgementHandler;
+import edu.cmu.TTP.models.ClientDataID;
 import edu.cmu.TTP.models.ConnectionEssentials;
 import edu.cmu.TTP.models.Datagram;
 import edu.cmu.TTP.models.PacketType;
@@ -73,12 +75,12 @@ public class TTPService {
 		return clientHelperModel.isAckReceived();
 	}
 
-	public void sendData(Datagram datagram) throws IOException, ClassNotFoundException, InterruptedException {
+	public void sendData(Datagram datagram, ConcurrentMap<ClientDataID, Datagram> map) throws IOException, ClassNotFoundException, InterruptedException {
 		List<Datagram> data = getListOfSegments(datagram);
 		this.sendDataReqAck(datagram, data.size());
 
 		TTPServerHelperModel serverHelperModel = new TTPServerHelperModel(this);
-		Thread t = new Thread(new DataAcknowledgementHandler(serverHelperModel));
+		Thread t = new Thread(new DataAcknowledgementHandler(serverHelperModel, datagram.getDstaddr(), map));
 		t.start();
 
 		// While we have not received acknowledgement for the entire data,

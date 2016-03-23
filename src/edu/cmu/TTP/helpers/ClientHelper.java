@@ -32,8 +32,13 @@ public class ClientHelper {
 	}
 	
 	public TTPClientHelperModel requestForFile(String fileName) throws IOException, InterruptedException {
+		TTPSegment ttpSegment = new TTPSegment();
+		ttpSegment.setType(PacketType.DATA_REQ_SYN);
+		ttpSegment.setSequenceNumber(null);
+		ttpSegment.setData(fileName.getBytes());
+		
 		Datagram datagram = new Datagram();
-		datagram.setData(fileName);
+		datagram.setData(ttpSegment);
 		datagram.setSrcaddr(connEssentials.getClientAddress());
 		datagram.setDstaddr(connEssentials.getServerAddress());
 		datagram.setDstport(connEssentials.getServerPort());
@@ -57,7 +62,6 @@ public class ClientHelper {
 		}
 		System.out.println("Stopped waiting for File ACK");
 		t.interrupt();
-		//t.stop();
 		return requestFileHelper;
 	}
 	
