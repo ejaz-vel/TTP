@@ -177,13 +177,13 @@ public class TTPService {
 		int transmissionAttempts = 0;
 		while (!clientHelperModel.isAckReceived() && transmissionAttempts < TTPConstants.MAX_RETRY) {
 			transmissionAttempts++;
+			Thread t = new Thread(new AcknowledgementHandler(clientHelperModel, PacketType.FIN_ACK));
+			t.start();
+			
 			System.out.println("FIN Transmission attempt " + transmissionAttempts);
 			TTPSegment ttpSegment = new TTPSegment();
 			ttpSegment.setData(null);
 			ttpSegment.setType(PacketType.FIN);
-
-			Thread t = new Thread(new AcknowledgementHandler(clientHelperModel, PacketType.FIN_ACK));
-			t.start();
 			
 			Datagram dt = new Datagram();
 			dt.setDstaddr(connectionEssentials.getServerAddress());
