@@ -31,7 +31,6 @@ public class Datagram implements Serializable {
 	// Actual data
 	Object data;
 
-	
 	public Datagram() {
 		super();
 	}

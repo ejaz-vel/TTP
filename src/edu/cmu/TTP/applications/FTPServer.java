@@ -39,11 +39,18 @@ public class FTPServer {
 				if(((TTPSegment)datagram.getData()).getType().equals(PacketType.SYN)) {
 					System.out.println("Received SYN datagram from " + datagram);
 					ttp.sendAck(datagram, null, PacketType.ACK);
-					
+
+					ClientPacketID clientID = new ClientPacketID();
+					clientID.setIPAddress(datagram.getSrcaddr());
+					clientID.setPort(datagram.getSrcport());
+					clientID.setPacketType(PacketType.SYN);
+					Datagram data = map.putIfAbsent(clientID, datagram);
+
 					// Spawn a new thread to transfer the file contents
-					Thread t = new Thread(new FTPConnectionHandler(map, datagram, ttp));
-					t.start();
-					
+					if (data == null) {
+						Thread t = new Thread(new FTPConnectionHandler(map, datagram, ttp));
+						t.start();
+					}
 				} else if (((TTPSegment)datagram.getData()).getType().equals(PacketType.DATA_REQ_SYN)) {
 					System.out.println("Received File name at Server Side");
 					ClientPacketID clientID = new ClientPacketID();
@@ -57,12 +64,26 @@ public class FTPServer {
 					clientID.setIPAddress(datagram.getSrcaddr());
 					clientID.setPort(datagram.getSrcport());
 					clientID.setPacketType(PacketType.ACK);
-					
+
 					Datagram data = map.putIfAbsent(clientID, datagram);
 					int seqNum = ((TTPSegment)datagram.getData()).getSequenceNumber();
 					if (data != null && ((TTPSegment)data.getData()).getSequenceNumber() < seqNum) {
 						map.put(clientID, datagram);
 					}
+				} else if(((TTPSegment)datagram.getData()).getType().equals(PacketType.FIN)) {
+					System.out.println("Received FIN for data at Server Side");
+					ClientPacketID clientID = new ClientPacketID();
+					clientID.setIPAddress(datagram.getSrcaddr());
+					clientID.setPort(datagram.getSrcport());
+					clientID.setPacketType(PacketType.ACK);
+
+					map.remove(clientID);
+					clientID.setPacketType(PacketType.DATA_REQ_SYN);
+					map.remove(clientID);
+					clientID.setPacketType(PacketType.SYN);
+					map.remove(clientID);
+
+					ttp.sendAck(datagram, null, PacketType.FIN_ACK);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
