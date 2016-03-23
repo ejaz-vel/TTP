@@ -38,7 +38,7 @@ public class FTPServer {
 				Datagram datagram = ttp.receiveDatagram();
 				if(((TTPSegment)datagram.getData()).getType().equals(PacketType.SYN)) {
 					System.out.println("Received SYN datagram from " + datagram);
-					ttp.sendAck(datagram, null);
+					ttp.sendAck(datagram, null, PacketType.ACK);
 					
 					// Spawn a new thread to transfer the file contents
 					Thread t = new Thread(new FTPConnectionHandler(map, datagram, ttp));
