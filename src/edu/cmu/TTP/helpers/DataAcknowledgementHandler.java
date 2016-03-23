@@ -2,9 +2,9 @@
  * 
  */
 package edu.cmu.TTP.helpers;
+import java.util.concurrent.ConcurrentMap;
 
-import java.io.IOException;
-
+import edu.cmu.TTP.models.ClientPacketID;
 import edu.cmu.TTP.models.Datagram;
 import edu.cmu.TTP.models.PacketType;
 import edu.cmu.TTP.models.TTPSegment;
@@ -16,28 +16,38 @@ import edu.cmu.TTP.models.TTPServerHelperModel;
  */
 public class DataAcknowledgementHandler implements Runnable {
 
-	TTPServerHelperModel serverHelperModel = null;
-	
-	public DataAcknowledgementHandler(TTPServerHelperModel serverHelperModel) {
+	private TTPServerHelperModel serverHelperModel = null;
+	private ConcurrentMap<ClientPacketID, Datagram> map = null;
+	private String clientIPAddress = null;
+	private short port;
+
+	public DataAcknowledgementHandler(TTPServerHelperModel serverHelperModel, String clientIPAddress, short port, ConcurrentMap<ClientPacketID, Datagram> map) {
 		this.serverHelperModel = serverHelperModel;
+		this.map = map;
+		this.clientIPAddress = clientIPAddress;
+		this.port = port;
 	}
-	
+
 	@Override
 	public void run() {
 		while (!Thread.currentThread().isInterrupted()) {
-			try { 
-				Datagram dat = serverHelperModel.getTTPService().receiveDatagram();
-				if (dat.getData() != null) {
-					TTPSegment segment = (TTPSegment) dat.getData();
-					System.out.println("Data Ack Recieved: " + segment);
-					System.out.println("Ack recieve by thread id: "+ Thread.currentThread().getId());
-					if (segment.getType() == PacketType.ACK 
-							&& segment.getSequenceNumber() == serverHelperModel.getExpectingAcknowledgement()) {
-						serverHelperModel.setExpectingAcknowledgement
-												(serverHelperModel.getExpectingAcknowledgement()+1);
+			try {
+				int expAck = serverHelperModel.getExpectingAcknowledgement();
+				ClientPacketID clientData = new ClientPacketID();
+				clientData.setIPAddress(clientIPAddress);
+				clientData.setPort(port);
+				clientData.setPacketType(PacketType.ACK);
+
+				while (true) {
+					Datagram data = map.get(clientData);
+					if (data != null && ((TTPSegment)data.getData()).getSequenceNumber() >= expAck) {
+						TTPSegment segment = (TTPSegment) data.getData();
+						System.out.println("Data Ack Recieved: " + segment);
+						serverHelperModel.setExpectingAcknowledgement(((TTPSegment)data.getData()).getSequenceNumber() +1);
+						break;
 					}
 				}
-			} catch (IOException | ClassNotFoundException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			} 
 		}

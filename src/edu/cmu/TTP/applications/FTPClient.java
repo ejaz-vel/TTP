@@ -57,8 +57,8 @@ public class FTPClient {
 			System.out.println(thread.getId()+ " " +thread.getName());
 		}
 	}
-
-	private static void printUsage() {
+	
+    private static void printUsage() {
 		System.out.println("Need to pass 3 Command Line arguments: <localport> <serverport> <filename>\n");
 		System.exit(-1);
 	}
