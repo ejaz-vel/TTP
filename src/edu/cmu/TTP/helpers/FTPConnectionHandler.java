@@ -12,13 +12,19 @@ import edu.cmu.TTP.models.PacketType;
 import edu.cmu.TTP.models.TTPSegment;
 import edu.cmu.TTP.services.TTPService;
 
+/**
+ * @author ejaz
+ * 
+ * 
+ *
+ */
 public class FTPConnectionHandler implements Runnable {
-
 	private ConcurrentMap<ClientPacketID, Datagram> map;
 	private Datagram synDatagram;
 	private TTPService ttp;
 
-	public FTPConnectionHandler(ConcurrentMap<ClientPacketID, Datagram> map, Datagram datagram, TTPService ttp) {
+	public FTPConnectionHandler(ConcurrentMap<ClientPacketID, Datagram> map,
+			Datagram datagram, TTPService ttp) {
 		this.map = map;
 		this.synDatagram = datagram;
 		this.ttp = ttp;
@@ -31,31 +37,29 @@ public class FTPConnectionHandler implements Runnable {
 			clientData.setIPAddress(synDatagram.getSrcaddr());
 			clientData.setPort(synDatagram.getSrcport());
 			clientData.setPacketType(PacketType.DATA_REQ_SYN);
-			
-			while (!map.containsKey(clientData));
-			
+			while (!map.containsKey(clientData))
+				;
 			System.out.println("Received Filename in thread");
 			Datagram datagram = map.get(clientData);
 			map.remove(clientData);
-			
 			Datagram fileData = new Datagram();
 			fileData.setSrcaddr(datagram.getDstaddr());
 			fileData.setSrcport(datagram.getDstport());
 			fileData.setDstaddr(datagram.getSrcaddr());
 			fileData.setDstport(datagram.getSrcport());
-			fileData.setData(getFileContents(new String(((TTPSegment)datagram.getData()).getData())));
+			fileData.setData(getFileContents(
+					new String(((TTPSegment) datagram.getData()).getData())));
 			ttp.sendData(fileData, map);
-		} catch(IOException | ClassNotFoundException | InterruptedException e) {
+		} catch (IOException | ClassNotFoundException | InterruptedException e) {
 			e.printStackTrace();
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-	
+
 	private byte[] getFileContents(String fileName) {
 		try {
-			return Files.readAllBytes(Paths.get("serverFiles/" +  fileName));
+			return Files.readAllBytes(Paths.get("serverFiles/" + fileName));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
