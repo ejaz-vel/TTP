@@ -219,7 +219,7 @@ public class TTPService {
 		return calcChecksum;
 	}
 
-	public void sendAck(Datagram datagram, Integer sequenceNumber) throws IOException {
+	public void sendAck(Datagram datagram, Integer sequenceNumber, PacketType ackType) throws IOException {
 		Datagram ack = new Datagram();
 		ack.setSrcaddr(datagram.getDstaddr());
 		ack.setSrcport(datagram.getDstport());
@@ -249,4 +249,13 @@ public class TTPService {
 		ack.setData(segment);
 		this.sendDatagram(ack);
 	}
+
+	public void waitForClose() throws ClassNotFoundException, IOException {
+		Datagram fin = receiveDatagram();
+		if(fin.getData()!=null) {
+			if(((TTPSegment)fin.getData()).getType().equals(PacketType.FIN)) {
+				sendAck(fin,null, PacketType.FIN_ACK);
+			}
+		}
+	}	
 }

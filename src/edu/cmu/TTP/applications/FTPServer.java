@@ -42,7 +42,7 @@ public class FTPServer {
 			datagram = ttp.receiveDatagram();
 			if(((TTPSegment)datagram.getData()).getType().equals(PacketType.SYN)) {
 				System.out.println("Received SYN datagram from " + datagram);
-				ttp.sendAck(datagram, null);
+				ttp.sendAck(datagram, null, PacketType.ACK);
 				
 				datagram = ttp.receiveDatagram();
 				System.out.println("Received Data datagram from " + datagram);
@@ -54,6 +54,7 @@ public class FTPServer {
 				fileData.setDstport(datagram.getSrcport());
 				fileData.setData(getFileContents(datagram.getData().toString()));
 				ttp.sendData(fileData);
+				ttp.waitForClose();
 			}
 		}
 	}

@@ -75,7 +75,7 @@ public class ClientHelper {
 					outputStream.write(segment.getData());
 					
 					/* Send acknowledgment */
-					ttpService.sendAck(datagram,clientHelperModel.getExpectedSequenceNumber());
+					ttpService.sendAck(datagram,clientHelperModel.getExpectedSequenceNumber(), null);
 					System.out.println("Sent ACK for Sequence: " + clientHelperModel.getExpectedSequenceNumber());
 					clientHelperModel.increamentExpectedSequenceNumber();
 					numberOfSegmentsRecieved++;
