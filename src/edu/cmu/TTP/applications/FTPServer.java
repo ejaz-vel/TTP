@@ -164,7 +164,7 @@ public class FTPServer {
 	}
 
 	private static void printUsage() {
-		System.out.println("Usage: server <port> <timeout> <window size>");
+		System.out.println("Usage: server <port> <timeout> <windowSize>");
 		System.exit(-1);
 	}
 }

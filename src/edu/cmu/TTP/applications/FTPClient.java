@@ -23,7 +23,7 @@ public class FTPClient {
 	 * @throws NoSuchAlgorithmException 
 	 */
 	public static void main(String[] args) throws IOException, ClassNotFoundException, NumberFormatException, InterruptedException, NoSuchAlgorithmException {
-		if(args.length != 4) {
+		if(args.length != 5) {
 			printUsage();
 		}
 
@@ -31,6 +31,8 @@ public class FTPClient {
 		int serverPort = Integer.parseInt(args[1]);
 		String fileName = args[2];
 		int timeout = Integer.parseInt(args[3]);
+		int windowSize = Integer.parseInt(args[4]);
+		
 		String clientAddress = "127.0.0.1";
 		String serverAddress = "127.0.0.1";
 		
@@ -55,7 +57,7 @@ public class FTPClient {
 	}
 	
     private static void printUsage() {
-		System.out.println("Need to pass 4 Command Line arguments: <localport> <serverport> <filename> <timeout>\n");
+		System.out.println("Need to pass 5 Command Line arguments: <localport> <serverport> <filename> <timeout> <windowSize>\n");
 		System.exit(-1);
 	}
 }
