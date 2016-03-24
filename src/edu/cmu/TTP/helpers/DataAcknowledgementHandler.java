@@ -17,13 +17,13 @@ import edu.cmu.TTP.models.TTPServerHelperModel;
  *         This class is responsible for running in the background as a thread
  *         and waiting for acknowledgments. The acknowledgments are only
  *         considered if sequence number of ack is greater than the expected ack
- *         number or else, is discarded. 
- *         
+ *         number or else, is discarded.
+ * 
  *         This approach is adopted to take care of duplicate acks.
  * 
- *         Since the server should be able to handle multiple requests, a received 
- *         ack should be able to be mapped to the correct client. This is done by 
- *         maintaining a mapping in a ConcurrentMap.
+ *         Since the server should be able to handle multiple requests, a
+ *         received ack should be able to be mapped to the correct client. This
+ *         is done by maintaining a mapping in a ConcurrentMap.
  * 
  *
  */

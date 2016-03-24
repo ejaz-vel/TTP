@@ -126,9 +126,10 @@ public class ClientHelper {
 			System.out.println("Data Segment Received: " + datagram);
 			if (datagram.getData() != null) {
 				TTPSegment segment = (TTPSegment) datagram.getData();
-				if(clientHelperModel.getExpectedSequenceNumber() == segment.getSequenceNumber()
-						&& segment.getType().equals(PacketType.DATA)
-						&& datagram.getChecksum() == ttpService.calculateChecksum(datagram)) {
+				if (clientHelperModel.getExpectedSequenceNumber() == segment
+						.getSequenceNumber() && segment.getType().equals(PacketType.DATA)
+						&& datagram.getChecksum() == ttpService
+								.calculateChecksum(datagram)) {
 					outputStream.write(segment.getData());
 					/* Send acknowledgment */
 					ttpService.sendAck(datagram,

@@ -7,13 +7,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * @author apurv
- * Utility class for TTP
+ * @author apurv Utility class for TTP
  */
 public class TTPUtil {
-	
 	/**
 	 * Calculates md5 for a given byte array
+	 * 
 	 * @param data
 	 * @return
 	 * @throws NoSuchAlgorithmException
@@ -22,11 +21,11 @@ public class TTPUtil {
 		MessageDigest md = MessageDigest.getInstance("MD5");
 		md.update(data);
 		byte[] digest = md.digest();
-		//convert the byte to hex format method 1
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < digest.length; i++) {
-          sb.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
-        }
+		// convert the byte to hex format method 1
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < digest.length; i++) {
+			sb.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
+		}
 		return sb.toString();
 	}
 }

@@ -33,7 +33,6 @@ import edu.cmu.TTP.models.TTPServerHelperModel;
  *
  */
 public class TTPService {
-	
 	private DatagramService datagramService;
 	public int RETRANSMISSION_TIMEOUT;
 
@@ -127,8 +126,7 @@ public class TTPService {
 			sendNSegments(serverHelperModel.getStartingWindowSegment(), data);
 			long startTime = System.currentTimeMillis();
 			int endOFWindow = Math.min(data.size(),
-					serverHelperModel.getStartingWindowSegment()
-							+ FTPServer.WINDOW_SIZE);
+					serverHelperModel.getStartingWindowSegment() + FTPServer.WINDOW_SIZE);
 			// While we have not received acknowledgement for all packets in the
 			// window OR
 			// the transmission timeout is over
@@ -284,8 +282,9 @@ public class TTPService {
 		return calcChecksum;
 	}
 
-	/** 
+	/**
 	 * Responsible for sending acks in response to a packet.
+	 * 
 	 * @param datagram
 	 * @param sequenceNumber
 	 * @param ackType

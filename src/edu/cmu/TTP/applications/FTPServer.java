@@ -43,7 +43,7 @@ import edu.cmu.TTP.services.TTPService;
  *         7. Upon receiving a FIN, the server removes all the client mappings, from the 
  *         	  map and kills the thread after sending a FIN_ACK.
  *         8. In case the FIN_ACK is not received by the client and it times out, it will
- *            send a FIN again and the server will try to do everything from step 7 again. 
+ *            send a FIN again and the server will try to do everything from step 7 again.
  *         </pre>
  */
 public class FTPServer {
@@ -55,7 +55,6 @@ public class FTPServer {
 		if (args.length != 3) {
 			printUsage();
 		}
-		
 		System.out.println("Starting Server ...");
 		int port = Integer.parseInt(args[0]);
 		int timeout = Integer.parseInt(args[1]);
