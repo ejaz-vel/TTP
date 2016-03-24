@@ -46,9 +46,11 @@ public class FTPClient {
 		// Setup the connection.
 		if (ttp.setupClientConnection(connectionEssentials)) {
 			// SYN and ACK are done. Now request for the filename.
-			while((clientHelperModel= helper.requestForFile(fileName))==null);
+			while((clientHelperModel= helper.requestForFile(fileName)) == null);
 			// Start reading data.
-			helper.receiveDataHelper(clientHelperModel,fileName);
+			if (clientHelperModel.isAckReceived()) {
+				helper.receiveDataHelper(clientHelperModel,fileName);
+			}
 			ttp.closeClientSideConnection(connectionEssentials);
 		} else {
 			System.out.println("Unable to setup connection with the server");

@@ -57,7 +57,10 @@ public class ClientHelper {
 	public TTPClientHelperModel requestForFile(String fileName)
 			throws IOException, InterruptedException {
 		TTPClientHelperModel requestFileHelper = new TTPClientHelperModel(ttpService);
-		while (!requestFileHelper.isAckReceived()) {
+		int transmissionAttempts = 0;
+		while (!requestFileHelper.isAckReceived()
+				&& transmissionAttempts < TTPConstants.MAX_RETRY) {
+			transmissionAttempts++;
 			/*
 			 * Wait for acknowledgement. Acknowledgement will also contain
 			 * number of expected segments. Keep polling till timeout,
